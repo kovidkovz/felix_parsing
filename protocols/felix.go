@@ -314,19 +314,19 @@ func processDecodedPayload(
 				cleaned := strings.TrimSpace(strings.TrimSuffix(v, "%"))
 				parsed, err := strconv.Atoi(cleaned)
 				if err != nil {
-					(*signals)["batteryLevel"] = int32(0)
+					(*signals)["batteryLevel"] = 0
 				} else {
-					(*signals)["batteryLevel"] = int32(parsed)
+					(*signals)["batteryLevel"] = parsed
 					*batterySet = true
 				}
 			case float64:
-				(*signals)["batteryLevel"] = int32(v)
+				(*signals)["batteryLevel"] = v
 				*batterySet = true
 			case int:
-				(*signals)["batteryLevel"] = int32(v)
+				(*signals)["batteryLevel"] = v
 				*batterySet = true
 			default:
-				(*signals)["batteryLevel"] = int32(0)
+				(*signals)["batteryLevel"] = 0
 			}
 
 		case "messages", "position_data", "temperature", "light_intensity", "ambient_temperature", "humidity", "relative_humidity":
@@ -425,28 +425,28 @@ func processDecodedPayload(
 			switch v := val.(type) {
 			case map[string]interface{}:
 				if celsius, ok := v["celsius"].(float64); ok {
-					(*signals)["temperatureLevel"] = int32(celsius)
+					(*signals)["temperatureLevel"] = celsius
 					*temperatureSet = true
 				} else {
-					(*signals)["temperatureLevel"] = int32(0)
+					(*signals)["temperatureLevel"] = 0
 				}
 			case string:
 				cleaned := strings.TrimSpace(strings.TrimSuffix(v, "°C"))
 				parsed, err := strconv.Atoi(cleaned)
 				if err != nil {
-					(*signals)["temperatureLevel"] = int32(0)
+					(*signals)["temperatureLevel"] = 0
 				} else {
-					(*signals)["temperatureLevel"] = int32(parsed)
+					(*signals)["temperatureLevel"] = parsed
 				}
 				*temperatureSet = true
 			case float64:
-				(*signals)["temperatureLevel"] = int32(v)
+				(*signals)["temperatureLevel"] = v
 				*temperatureSet = true
 			case int:
-				(*signals)["temperatureLevel"] = int32(v)
+				(*signals)["temperatureLevel"] = v
 				*temperatureSet = true
 			default:
-				(*signals)["temperatureLevel"] = int32(0)
+				(*signals)["temperatureLevel"] = 0
 			}
 		}
 
