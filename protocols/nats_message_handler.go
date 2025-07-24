@@ -29,21 +29,21 @@ import (
 // 	}
 // }
 
-type ParsedData struct {
-	Location     *GeoLocation `json:"location,omitempty"`
-	HardwareID   string       `json:"hardwareId,omitempty"`
-	Time         int64        `json:"serverTime,omitempty"`
-	MessageID    string       `json:"messageId,omitempty"`
-	Protocol     string       `json:"protocol,omitempty"`
-	ServiceToken string       `json:"serviceToken,omitempty"`
-	PositionTime int64        `json:"deviceTime,omitempty"`
-	Indoor       *Indoor      `json:"Indoor,omitempty"`
-	EventStatus  interface{}  `json:"EventStatus,omitempty"`
-	Battery      interface{}  `json:"Battery,omitempty"`
-	Light        interface{}  `json:"Light,omitempty"`
-	Temperature  interface{}  `json:"AirTemperature,omitempty"`
-	Humidity     interface{}  `json:"Humidity,omitempty"`
-}
+// type ParsedData struct {
+// 	Location     *GeoLocation `json:"location,omitempty"`
+// 	HardwareID   string       `json:"hardwareId,omitempty"`
+// 	Time         int64        `json:"serverTime,omitempty"`
+// 	MessageID    string       `json:"messageId,omitempty"`
+// 	Protocol     string       `json:"protocol,omitempty"`
+// 	ServiceToken string       `json:"serviceToken,omitempty"`
+// 	PositionTime int64        `json:"deviceTime,omitempty"`
+// 	Indoor       *Indoor      `json:"Indoor,omitempty"`
+// 	EventStatus  interface{}  `json:"EventStatus,omitempty"`
+// 	Battery      interface{}  `json:"Battery,omitempty"`
+// 	Light        interface{}  `json:"Light,omitempty"`
+// 	Temperature  interface{}  `json:"AirTemperature,omitempty"`
+// 	Humidity     interface{}  `json:"Humidity,omitempty"`
+// }
 type Indoor struct {
 	Building        string `json:"building,omitempty"`
 	BuildingId      int32  `json:"buildingId,omitempty"`
@@ -96,7 +96,7 @@ func Nats_message_handlers(msg []byte) []byte {
 	// --- For specific protocol types, skip if radioData exists ---
 	if protocol == "abeeway-compact-tracker" || protocol == "cpsflex" || protocol == "default-iot" {
 		if rd, ok := raw["radioData"].(map[string]interface{}); !ok || len(rd) == 0 {
-			parsed := ParsedData{}
+			signals := make(map[string]interface{})
 
 			// --- Parse location ---
 			if locMap, ok := raw["location"].(map[string]interface{}); ok {
@@ -116,7 +116,7 @@ func Nats_message_handlers(msg []byte) []byte {
 				if source, ok := locMap["source"].(string); ok {
 					location.Source = source
 				}
-				parsed.Location = location
+				signals["location"] = location
 			}
 
 			// --- Parse indoor ---
@@ -137,87 +137,30 @@ func Nats_message_handlers(msg []byte) []byte {
 				if index, ok := indoorMap["floorIndex"].(float64); ok {
 					indoor.FloorIndex = int(index)
 				}
-				parsed.Indoor = indoor
+				signals["Indoor"] = indoor
 			}
 
 			// --- Generic fields ---
 			if v, ok := raw["hardwareId"].(string); ok {
-				parsed.HardwareID = v
+				signals["hardwareId"] = v
 			}
 			if v, ok := raw["messageId"].(string); ok {
-				parsed.MessageID = v
+				signals["messageId"] = v
 			}
 			if v, ok := raw["serviceToken"].(string); ok {
-				parsed.ServiceToken = v
+				signals["servicetoken"] = v
 			}
 			if v, ok := raw["time"].(float64); ok {
-				parsed.Time = int64(v)
+				signals["serverTime"] = v
 			}
 			if v, ok := raw["positionTime"].(float64); ok {
-				parsed.PositionTime = int64(v)
+				signals["positionTime"] = v
 			}
 
-			// --- Parse "signals" block ---
 			if sigMap, ok := raw["signals"].(map[string]interface{}); ok {
-				if bat, ok := sigMap["Battery"]; ok {
-					parsed.Battery = bat
-				}
-				if lit, ok := sigMap["Light"]; ok {
-					parsed.Light = lit
-				}
-				if temp, ok := sigMap["Air Temperature"]; ok {
-					parsed.Temperature = temp
-				}
-				if hum, ok := sigMap["Humidity"]; ok {
-					parsed.Humidity = hum
-				}
-				if ev, ok := sigMap["Event Status"]; ok {
-					parsed.EventStatus = ev
-				}
-			}
-
-			// --- Parse "mokoSignals" if available ---
-			if sigMap, ok := raw["mokoSignals"].(map[string]interface{}); ok {
-				mokoSignals := make(map[string]interface{})
 				for k, v := range sigMap {
-					if k == "Battery" {
-						mokoSignals["batteryLevel"] = v
-					} else {
-						mokoSignals[k] = v
-					}
-
-				// --- Generic fields ---
-				if v, ok := raw["hardwareId"].(string); ok {
-					mokoSignals["hardwareId"]= v
+					signals[k] = v
 				}
-				if v, ok := raw["messageId"].(string); ok {
-					mokoSignals["messageId"]=v
-				}
-				if v, ok := raw["serviceToken"].(string); ok {
-					mokoSignals["serviceToken"] = v
-				}
-				if v, ok := raw["time"].(float64); ok {
-					mokoSignals["serverTime"] = v
-				}
-				if v, ok := raw["positionTime"].(float64); ok {
-					mokoSignals["positionTime"] = v
-				}
-				}
-
-				delete(raw, "mokoSignals")
-
-				nonlookupresponse = &Signals{
-					Parsed_data: raw,
-					Signals:     mokoSignals,
-				}
-
-				noncpsbytes, err := json.Marshal(nonlookupresponse)
-				if err != nil {
-					log.Println("Error marshalling mokoSignals response:", err)
-					return nil
-				}
-
-				return noncpsbytes
 			}
 
 			// --- Default response using ParsedData ---
@@ -225,7 +168,7 @@ func Nats_message_handlers(msg []byte) []byte {
 
 			nonlookupresponse = &Signals{
 				Parsed_data: raw,
-				Signals:     parsed,
+				Signals:     signals,
 			}
 
 			noncpsbytes, err := json.Marshal(nonlookupresponse)
@@ -233,9 +176,8 @@ func Nats_message_handlers(msg []byte) []byte {
 				log.Println("Error marshalling ParsedData:", err)
 				return nil
 			}
-
 			return noncpsbytes
-			}
+		}
 	}
 
 	radioData, ok := raw["radioData"].(map[string]interface{})
@@ -283,26 +225,11 @@ func Nats_message_handlers(msg []byte) []byte {
 	finalSignals := make(map[string]interface{})
 
 	// Inject battery, temperature, etc.
-	if signalsData, ok := raw["signals"].(map[string]interface{}); ok {
-		if battery, ok := signalsData["Battery"]; ok {
-			finalSignals["Battery"] = battery
-		}
-		if temp, ok := signalsData["Air Temperature"]; ok {
-			finalSignals["AirTemperature"] = temp
-		}
-		if serverTime, ok := signalsData["received_time"]; ok {
-			finalSignals["serverTime"] = serverTime
-		}
-		if light, ok := signalsData["Light"]; ok {
-			finalSignals["Light"] = light
-		}
-		if event_status, ok := signalsData["Event Status"]; ok {
-			finalSignals["EventStatus"] = event_status
-		}
-		if humidity, ok := signalsData["Humidity"].(interface{}); ok {
-			finalSignals["Humidity"] = humidity
-		}
-	}
+	if sigMap, ok := raw["signals"].(map[string]interface{}); ok {
+				for k, v := range sigMap {
+					finalSignals[k] = v
+				}
+			}
 
 	// Inject hardwareId and messageId
 	if hwID, ok := raw["hardwareId"]; ok {
