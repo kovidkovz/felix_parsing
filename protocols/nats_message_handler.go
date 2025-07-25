@@ -226,10 +226,10 @@ func Nats_message_handlers(msg []byte) []byte {
 
 	// Inject battery, temperature, etc.
 	if sigMap, ok := raw["signals"].(map[string]interface{}); ok {
-				for k, v := range sigMap {
-					finalSignals[k] = v
-				}
-			}
+		for k, v := range sigMap {
+			finalSignals[k] = v
+		}
+	}
 
 	// Inject hardwareId and messageId
 	if hwID, ok := raw["hardwareId"]; ok {

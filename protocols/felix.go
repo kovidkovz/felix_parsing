@@ -126,19 +126,7 @@ func Parse_felix_data(msg []byte) []byte {
 				BluetoothBeacons: blue_wifi,
 			}
 		}
-
-		// if !*mokoDevice{
-		// 	signals = &models.Signals{
-		// 	Battery:      battery,
-		// 	Temperature:  temperature,
-		// 	ReceivedTime: receivedTime,
-		// 	Light:        light,
-		// 	EventStatus:  event_status,
-		// 	Humidity: humidity,
-		// 	}
-		// }
 		
-
 		incoming := models.IncomingData{
 			HardwareID:   hardwareID,
 			Time:         raw["time"],
@@ -149,7 +137,6 @@ func Parse_felix_data(msg []byte) []byte {
 			RadioData:    &radioData,
 			Signals:      signals,
 			PositionTime: positionTime,
-			// MokoSignals: mokosignals,
 		}
 
 		result, err := json.Marshal(incoming)
@@ -159,20 +146,7 @@ func Parse_felix_data(msg []byte) []byte {
 		}
 		return result
 	}
-
-	// // Else, send GeoLocation version
-	// if !*mokoDevice{
-	// 	signals = &models.Signals{
-	// 	Battery:      battery,
-	// 	Temperature:  temperature,
-	// 	ReceivedTime: receivedTime,
-	// 	Light:        light,
-	// 	EventStatus:  event_status,
-	// 	Humidity: humidity,
-	// }
-	// }
 	
-
 	incoming := models.IncomingData{
 		HardwareID:   hardwareID,
 		Time:         raw["time"],
@@ -184,7 +158,6 @@ func Parse_felix_data(msg []byte) []byte {
 		Indoor:       indoor,
 		Signals:      signals,
 		PositionTime: positionTime,
-		// MokoSignals: mokosignals,
 	}
 
 	result, err := json.Marshal(incoming)
@@ -242,16 +215,6 @@ func processUplinkMessage(
 	if decoded, ok := uplinkMsg["decoded_payload"].(map[string]interface{}); ok {
 		processDecodedPayload(decoded, geo, signals, blue_wifi, battery, temperature, light, humidity, event_status, locationSet, batterySet, temperatureSet, lightSet, bluetoothSet, mokoDevice)
 	}
-
-	// Step 5: Process battery percentage
-	// if !*batterySet{
-	// 	if lastBattery, ok := uplinkMsg["last_battery_percentage"].(map[string]interface{}); ok {
-	// 		if val, ok := lastBattery["value"]; ok {
-	// 			*battery = val
-	// 			*batterySet =true
-	// 		}
-	// 	}
-	// }
 
 	// Step 3: If both locationSet == false AND bluetoothBeacons empty, fallback to rx_metadata
 	if !*locationSet && (blue_wifi == nil || len(*blue_wifi) == 0) {
@@ -329,9 +292,15 @@ func processDecodedPayload(
 				(*signals)["batteryLevel"] = 0
 			}
 
-		case "messages", "position_data", "temperature", "light_intensity", "ambient_temperature", "humidity", "relative_humidity":
+		case "messages", "position_data", "light_intensity", "ambient_temperature", "humidity", "relative_humidity":
 			// handled below, skip here
 			continue
+		
+		case "temperature":
+			if tempMap, ok := val.(map[string]interface{}); ok {
+				(*signals)["temperature"] = tempMap
+				continue
+			}
 
 		default:
 			(*signals)[k] = val
@@ -344,7 +313,7 @@ func processDecodedPayload(
 			for _, m := range group {
 				entry := m.(map[string]interface{})
 				switch entry["measurementId"] {
-				case "5002", "5001":
+				case "5002":
 					if values, ok := entry["measurementValue"].([]interface{}); ok {
 						for _, b := range values {
 							beacon := b.(map[string]interface{})
@@ -358,6 +327,20 @@ func processDecodedPayload(
 							})
 						}
 						*bluetoothSet = true
+					}
+				case "5001":
+					if values, ok := entry["measurementValue"].([]interface{}); ok {
+						for _, b := range values {
+							beacon := b.(map[string]interface{})
+							macRaw := fmt.Sprintf("%v", beacon["mac"])
+							rssiRaw := fmt.Sprintf("%v", beacon["rssi"])
+							formattedMac := formatMac(macRaw)
+							cleanedRSSI := cleanRSSI(rssiRaw)
+							*blue_wifi = append(*blue_wifi, map[string]interface{}{
+								"macAddress":     formattedMac,
+								"signalStrength": cleanedRSSI,
+							})
+						}
 					}
 
 				case "4097":
@@ -415,6 +398,7 @@ func processDecodedPayload(
 					"macAddress":     formattedMac,
 					"signalStrength": cleanedRSSI,
 				})
+				*bluetoothSet = true
 			}
 		}
 	}
@@ -427,26 +411,23 @@ func processDecodedPayload(
 				if celsius, ok := v["celsius"].(float64); ok {
 					(*signals)["temperatureLevel"] = celsius
 					*temperatureSet = true
-				} else {
-					(*signals)["temperatureLevel"] = 0
+				}
+				if fahrenheit, ok := v["fahrenheit"].(float64); ok {
+					(*signals)["temperatureLevelF"] = fahrenheit
+					*temperatureSet = true
 				}
 			case string:
 				cleaned := strings.TrimSpace(strings.TrimSuffix(v, "°C"))
-				parsed, err := strconv.Atoi(cleaned)
+				parsed, err := strconv.ParseFloat(cleaned, 64)
 				if err != nil {
 					(*signals)["temperatureLevel"] = 0
 				} else {
 					(*signals)["temperatureLevel"] = parsed
 				}
 				*temperatureSet = true
-			case float64:
-				(*signals)["temperatureLevel"] = v
-				*temperatureSet = true
-			case int:
-				(*signals)["temperatureLevel"] = v
-				*temperatureSet = true
 			default:
-				(*signals)["temperatureLevel"] = 0
+				(*signals)["temperatureLevel"] = v
+				*temperatureSet = true
 			}
 		}
 
@@ -476,6 +457,9 @@ func processDecodedPayload(
 	
 
 func processNormalizedPayload(uplink map[string]interface{}, bluetoothBeacons *[]map[string]interface{}, signals *map[string]interface{}, battery, humidity, temperature *interface{}, positionTime *int64, locationSet *bool, batterySet *bool, temperatureSet *bool, lightSet *bool) {
+	if *signals == nil {
+    	*signals = make(map[string]interface{})
+	}
 	// Case 1: normalized_payload is a slice
 	if normalizedArray, ok := uplink["normalized_payload"].([]interface{}); ok && len(normalizedArray) > 0 {
 		if firstEntry, ok := normalizedArray[0].(map[string]interface{}); ok {
