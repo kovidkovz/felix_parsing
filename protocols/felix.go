@@ -275,21 +275,16 @@ func processDecodedPayload(
 			switch v := val.(type) {
 			case string:
 				cleaned := strings.TrimSpace(strings.TrimSuffix(v, "%"))
-				parsed, err := strconv.Atoi(cleaned)
+				parsed, err := strconv.ParseFloat(cleaned, 64)
 				if err != nil {
 					(*signals)["batteryLevel"] = 0
 				} else {
 					(*signals)["batteryLevel"] = parsed
 					*batterySet = true
 				}
-			case float64:
-				(*signals)["batteryLevel"] = v
-				*batterySet = true
-			case int:
-				(*signals)["batteryLevel"] = v
-				*batterySet = true
 			default:
-				(*signals)["batteryLevel"] = 0
+				(*signals)["batteryLevel"] = v
+				*batterySet = true
 			}
 
 		case "messages", "position_data", "light_intensity", "ambient_temperature", "humidity", "relative_humidity":
