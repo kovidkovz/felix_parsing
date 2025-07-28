@@ -283,7 +283,7 @@ func processDecodedPayload(
 					*batterySet = true
 				}
 			default:
-				(*signals)["batteryLevel"] = v
+				(*signals)["batteryLevel"] = val
 				*batterySet = true
 			}
 
@@ -296,6 +296,10 @@ func processDecodedPayload(
 				(*signals)["temperature"] = tempMap
 				continue
 			}
+		case "battery":
+			(*signals)["batteryLevel"] = val
+			*batterySet = true
+			continue
 
 		default:
 			(*signals)[k] = val
