@@ -48,6 +48,8 @@ func Parse_felix_data(msg []byte) []byte {
 	bluetoothSet := new(bool)
 	mokoDevice := new(bool)
 
+	signals = make(map[string]interface{})
+
 	// Process BLE-type payload done by cisco spaces
 	if notifications, ok := data["notifications"].([]interface{}); ok && len(notifications) > 0 {
 		if notification, ok := notifications[0].(map[string]interface{}); ok {
@@ -71,6 +73,8 @@ func Parse_felix_data(msg []byte) []byte {
 				}
 			}
 
+			signals["device_name"] = hardwareID
+
 			indoor = &models.Indoor{
 				Building:        "East Alpine Road 230",
 				BuildingId:      11878987,
@@ -85,16 +89,15 @@ func Parse_felix_data(msg []byte) []byte {
 		if devEUI, ok := edids["dev_eui"].(string); ok && devEUI != "" {
 			hardwareID = devEUI // override if present
 		}
-		if devType, ok := edids["device_id"].(string); ok && strings.HasPrefix(devType, "moko") {
+		if devType, ok := edids["device_id"].(string); ok{
 			fmt.Println("This is a moko device:", devType)
-			*mokoDevice = true
+			signals["device_name"] = devType
 		}
 	}
 
 	// Extract uplink_message whether inside end_device_ids or directly inside data
 	uplinkMsg := extractUplinkMessage(data)
 
-	
 
 	if uplinkMsg != nil {
 		processUplinkMessage(uplinkMsg, &geo, &signals, &blue_wifi, &battery, &temperature, &light, &humidity, &event_status, &positionTime, locationSet, batterySet, temperatureSet, lightSet, bluetoothSet, mokoDevice)
@@ -266,7 +269,7 @@ func processDecodedPayload(
 	battery, temperature, light, humidity, event_status *interface{},
 	locationSet, batterySet, temperatureSet, lightSet, bluetoothSet, mokoDevice *bool,
 ) {
-	*signals = make(map[string]interface{})
+	// *signals = make(map[string]interface{})
 
 	// Basic key-value parsing
 	for k, val := range decoded {
@@ -456,9 +459,6 @@ func processDecodedPayload(
 	
 
 func processNormalizedPayload(uplink map[string]interface{}, bluetoothBeacons *[]map[string]interface{}, signals *map[string]interface{}, battery, humidity, temperature *interface{}, positionTime *int64, locationSet *bool, batterySet *bool, temperatureSet *bool, lightSet *bool) {
-	if *signals == nil {
-    	*signals = make(map[string]interface{})
-	}
 	// Case 1: normalized_payload is a slice
 	if normalizedArray, ok := uplink["normalized_payload"].([]interface{}); ok && len(normalizedArray) > 0 {
 		if firstEntry, ok := normalizedArray[0].(map[string]interface{}); ok {
