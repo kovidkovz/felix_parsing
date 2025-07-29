@@ -73,6 +73,13 @@ func Parse_felix_data(msg []byte) []byte {
 				}
 			}
 
+			var locationHierarchy map[string]interface{}
+			if lhRaw, ok := notification["locationHierarchy"]; ok {
+				if lhMap, ok := lhRaw.(map[string]interface{}); ok {
+					locationHierarchy = lhMap
+				}
+			}
+
 			signals["device_name"] = hardwareID
 
 			indoor = &models.Indoor{
@@ -81,6 +88,7 @@ func Parse_felix_data(msg []byte) []byte {
 				FloorIndex:      0,
 				FloorLabel:      "0",
 				BuildingModelId: 159643361,
+				LocationHierarchy: locationHierarchy,
 			}
 		}
 	}

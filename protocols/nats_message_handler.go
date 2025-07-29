@@ -9,7 +9,6 @@ import (
 	// "net/url"
 	// "strings"
 	// "time"
-
 	// "github.com/kovidkovz/natstemplate/natstemplate"
 	// "gitlab.combain.com/go/keymate/cpslookup"
 	// "gitlab.combain.com/go/keymate/logs"
@@ -29,27 +28,28 @@ import (
 // 	}
 // }
 
-// type ParsedData struct {
-// 	Location     *GeoLocation `json:"location,omitempty"`
-// 	HardwareID   string       `json:"hardwareId,omitempty"`
-// 	Time         int64        `json:"serverTime,omitempty"`
-// 	MessageID    string       `json:"messageId,omitempty"`
-// 	Protocol     string       `json:"protocol,omitempty"`
-// 	ServiceToken string       `json:"serviceToken,omitempty"`
-// 	PositionTime int64        `json:"deviceTime,omitempty"`
-// 	Indoor       *Indoor      `json:"Indoor,omitempty"`
-// 	EventStatus  interface{}  `json:"EventStatus,omitempty"`
-// 	Battery      interface{}  `json:"Battery,omitempty"`
-// 	Light        interface{}  `json:"Light,omitempty"`
-// 	Temperature  interface{}  `json:"AirTemperature,omitempty"`
-// 	Humidity     interface{}  `json:"Humidity,omitempty"`
-// }
+//	type ParsedData struct {
+//		Location     *GeoLocation `json:"location,omitempty"`
+//		HardwareID   string       `json:"hardwareId,omitempty"`
+//		Time         int64        `json:"serverTime,omitempty"`
+//		MessageID    string       `json:"messageId,omitempty"`
+//		Protocol     string       `json:"protocol,omitempty"`
+//		ServiceToken string       `json:"serviceToken,omitempty"`
+//		PositionTime int64        `json:"deviceTime,omitempty"`
+//		Indoor       *Indoor      `json:"Indoor,omitempty"`
+//		EventStatus  interface{}  `json:"EventStatus,omitempty"`
+//		Battery      interface{}  `json:"Battery,omitempty"`
+//		Light        interface{}  `json:"Light,omitempty"`
+//		Temperature  interface{}  `json:"AirTemperature,omitempty"`
+//		Humidity     interface{}  `json:"Humidity,omitempty"`
+//	}
 type Indoor struct {
-	Building        string `json:"building,omitempty"`
-	BuildingId      int32  `json:"buildingId,omitempty"`
-	FloorIndex      int    `json:"floorIndex"`
-	FloorLabel      string `json:"floorLabel,omitempty"`
-	BuildingModelId int32  `json:"buildingModelId,omitempty"`
+	Building          string                 `json:"building,omitempty"`
+	BuildingId        int32                  `json:"buildingId,omitempty"`
+	FloorIndex        int                    `json:"floorIndex"`
+	FloorLabel        string                 `json:"floorLabel,omitempty"`
+	BuildingModelId   int32                  `json:"buildingModelId,omitempty"`
+	LocationHierarchy map[string]interface{} `json:"locationHierarchy,omitempty"`
 }
 
 type GeoLocation struct {
@@ -136,6 +136,9 @@ func Nats_message_handlers(msg []byte) []byte {
 				}
 				if index, ok := indoorMap["floorIndex"].(float64); ok {
 					indoor.FloorIndex = int(index)
+				}
+				if locationHierarchy, ok := indoorMap["locationHierarchy"].(map[string]interface{}); ok {
+					indoor.LocationHierarchy = locationHierarchy
 				}
 				signals["Indoor"] = indoor
 			}
@@ -259,14 +262,14 @@ func Nats_message_handlers(msg []byte) []byte {
 		Parsed_data: raw,
 		CpsRequest:  radioData,
 		// CpsResponse: responseMap,
-		Signals:     finalSignals, // Injected response map
+		Signals: finalSignals, // Injected response map
 	}
 
 	jsonBytes, err := json.Marshal(signals_response)
 	if err != nil {
 		log.Println("Error marshalling signals_response:", err)
 		return nil
-	} 
+	}
 	fmt.Println(string(jsonBytes))
 
 	return jsonBytes
