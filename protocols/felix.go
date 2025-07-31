@@ -15,13 +15,13 @@ import (
 func Parse_felix_data(msg []byte) []byte {
 	fmt.Println("felix data received by the parser")
 
-	var raw map[string]interface{}
+	var raw map[string]any
 	if err := json.Unmarshal(msg, &raw); err != nil {
 		log.Println("Error unmarshaling Felix data:", err)
 		return nil
 	}
 
-	data, ok := raw["data"].(map[string]interface{})
+	data, ok := raw["data"].(map[string]any)
 	if !ok {
 		log.Println("Error: data field missing or invalid")
 		return nil
@@ -29,31 +29,25 @@ func Parse_felix_data(msg []byte) []byte {
 
 	var hardwareID string
 	var geo *models.GeoLocation
-	var signals map[string]interface{}
+	var signals map[string]any
 	var indoor *models.Indoor
 	var positionTime int64
 
-	var blue_wifi []map[string]interface{}
-	var battery interface{}
-	var temperature interface{}
-	var light interface{}
-	var event_status interface{}
+	var blue_wifi []map[string]any
 	var receivedTime int64
-	var humidity interface{}
 
 	locationSet := new(bool)
 	batterySet := new(bool)
 	temperatureSet := new(bool)
 	lightSet := new(bool)
 	bluetoothSet := new(bool)
-	mokoDevice := new(bool)
 
-	signals = make(map[string]interface{})
+	signals = make(map[string]any)
 
 	// Process BLE-type payload done by cisco spaces
-	if notifications, ok := data["notifications"].([]interface{}); ok && len(notifications) > 0 {
-		if notification, ok := notifications[0].(map[string]interface{}); ok {
-			if geoMap, ok := notification["geoCoordinate"].(map[string]interface{}); ok {
+	if notifications, ok := data["notifications"].([]any); ok && len(notifications) > 0 {
+		if notification, ok := notifications[0].(map[string]any); ok {
+			if geoMap, ok := notification["geoCoordinate"].(map[string]any); ok {
 				lat, _ := geoMap["latitude"].(float64)
 				lng, _ := geoMap["longitude"].(float64)
 				unit, _ := geoMap["unit"].(string)
@@ -73,14 +67,14 @@ func Parse_felix_data(msg []byte) []byte {
 				}
 			}
 
-			var locationHierarchy map[string]interface{}
+			var locationHierarchy map[string]any
 			if lhRaw, ok := notification["locationHierarchy"]; ok {
-				if lhMap, ok := lhRaw.(map[string]interface{}); ok {
+				if lhMap, ok := lhRaw.(map[string]any); ok {
 					locationHierarchy = lhMap
 				}
 			}
 
-			signals["device_name"] = hardwareID
+			signals["deviceName"] = hardwareID
 
 			indoor = &models.Indoor{
 				Building:        "East Alpine Road 230",
@@ -93,13 +87,13 @@ func Parse_felix_data(msg []byte) []byte {
 		}
 	}
 
-	if edids, ok := data["end_device_ids"].(map[string]interface{}); ok {
+	if edids, ok := data["end_device_ids"].(map[string]any); ok {
 		if devEUI, ok := edids["dev_eui"].(string); ok && devEUI != "" {
 			hardwareID = devEUI // override if present
 		}
 		if devType, ok := edids["device_id"].(string); ok{
-			fmt.Println("This is a moko device:", devType)
-			signals["device_name"] = devType
+			fmt.Println("device type:", devType)
+			signals["deviceName"] = devType
 		}
 	}
 
@@ -108,11 +102,11 @@ func Parse_felix_data(msg []byte) []byte {
 
 
 	if uplinkMsg != nil {
-		processUplinkMessage(uplinkMsg, &geo, &signals, &blue_wifi, &battery, &temperature, &light, &humidity, &event_status, &positionTime, locationSet, batterySet, temperatureSet, lightSet, bluetoothSet, mokoDevice)
+		processUplinkMessage(uplinkMsg, &geo, &signals, &blue_wifi, &positionTime, locationSet, batterySet, temperatureSet, lightSet, bluetoothSet)
 	}
 
 	// Extract from normalized_payload if present (common case)
-	processNormalizedPayload(uplinkMsg, &blue_wifi, &signals, &battery, &humidity, &temperature, &positionTime, locationSet, batterySet, temperatureSet, lightSet)
+	processNormalizedPayload(uplinkMsg, &signals, batterySet, temperatureSet)
 
 	if receivedAt, ok := data["received_at"].(string); ok {
 		if parsedTime, err := time.Parse(time.RFC3339Nano, receivedAt); err == nil {
@@ -179,33 +173,30 @@ func Parse_felix_data(msg []byte) []byte {
 	return result
 }
 
-func extractUplinkMessage(data map[string]interface{}) map[string]interface{} {
-	if uplinkMsg, ok := data["uplink_message"].(map[string]interface{}); ok {
+func extractUplinkMessage(data map[string]any) map[string]any {
+	if uplinkMsg, ok := data["uplink_message"].(map[string]any); ok {
 		return uplinkMsg
-	}
-	if edids, ok := data["end_device_ids"].(map[string]interface{}); ok {
-		if uplinkMsg, ok := edids["uplink_message"].(map[string]interface{}); ok {
+	} else if edids, ok := data["end_device_ids"].(map[string]any); ok {
+		if uplinkMsg, ok := edids["uplink_message"].(map[string]any); ok {
 			return uplinkMsg
 		}
-	}
-	if ulinknrm, ok := data["uplink_normalized"].(map[string]interface{}); ok {
+	} else if ulinknrm, ok := data["uplink_normalized"].(map[string]any); ok {
 		return ulinknrm
 	}
 	return nil
 }
 
 func processUplinkMessage(
-	uplinkMsg map[string]interface{},
+	uplinkMsg map[string]any,
 	geo **models.GeoLocation,
-	signals *map[string]interface{},
-	blue_wifi *[]map[string]interface{},
-	battery, temperature, light, humidity, event_status *interface{},
-	positionTime *int64, locationSet *bool, batterySet *bool, temperatureSet *bool, lightSet *bool, bluetoothSet *bool, mokoDevice *bool,
+	signals *map[string]any,
+	blue_wifi *[]map[string]any,
+	positionTime *int64, locationSet *bool, batterySet *bool, temperatureSet *bool, lightSet *bool, bluetoothSet *bool,
 ) {
 
 	// Step 1: Check locations["user"]
-	if locs, ok := uplinkMsg["locations"].(map[string]interface{}); ok {
-		if userLoc, ok := locs["user"].(map[string]interface{}); ok {
+	if locs, ok := uplinkMsg["locations"].(map[string]any); ok {
+		if userLoc, ok := locs["user"].(map[string]any); ok {
 			lat, _ := userLoc["latitude"].(float64)
 			lng, _ := userLoc["longitude"].(float64)
 			source, _ := userLoc["source"].(string)
@@ -220,18 +211,16 @@ func processUplinkMessage(
 		}
 	}
 
-	
-
 	// Step 2: Process decoded_payload
-	if decoded, ok := uplinkMsg["decoded_payload"].(map[string]interface{}); ok {
-		processDecodedPayload(decoded, geo, signals, blue_wifi, battery, temperature, light, humidity, event_status, locationSet, batterySet, temperatureSet, lightSet, bluetoothSet, mokoDevice)
+	if decoded, ok := uplinkMsg["decoded_payload"].(map[string]any); ok {
+		processDecodedPayload(decoded, geo, signals, blue_wifi, locationSet, batterySet, temperatureSet, lightSet, bluetoothSet)
 	}
 
 	// Step 3: If both locationSet == false AND bluetoothBeacons empty, fallback to rx_metadata
 	if !*locationSet && (blue_wifi == nil || len(*blue_wifi) == 0) {
-		if rxMeta, ok := uplinkMsg["rx_metadata"].([]interface{}); ok && len(rxMeta) > 0 {
-			if firstMeta, ok := rxMeta[0].(map[string]interface{}); ok {
-				if loc, ok := firstMeta["location"].(map[string]interface{}); ok {
+		if rxMeta, ok := uplinkMsg["rx_metadata"].([]any); ok && len(rxMeta) > 0 {
+			if firstMeta, ok := rxMeta[0].(map[string]any); ok {
+				if loc, ok := firstMeta["location"].(map[string]any); ok {
 					lat, _ := loc["latitude"].(float64)
 					lng, _ := loc["longitude"].(float64)
 					alt, _ := loc["altitude"].(float64)
@@ -248,37 +237,30 @@ func processUplinkMessage(
 	}
 
 	// Step 4: Process positionTime as before
-	if rxMeta, ok := uplinkMsg["rx_metadata"].([]interface{}); ok && len(rxMeta) > 0 {
-		if firstMeta, ok := rxMeta[0].(map[string]interface{}); ok {
+	if rxMeta, ok := uplinkMsg["rx_metadata"].([]any); ok && len(rxMeta) > 0 {
+		if firstMeta, ok := rxMeta[0].(map[string]any); ok {
 
 			// Step 4.1: Check time field
 			if tsStr, ok := firstMeta["time"].(string); ok && tsStr != "" {
 				if t, err := time.Parse(time.RFC3339Nano, tsStr); err == nil {
 					*positionTime = t.UnixNano() / int64(time.Millisecond)
 				}
-			}
-
-			// Step 4.2: Check received_at field (this was your missing logic)
-			if rec_at, ok := firstMeta["received_at"].(string); ok && rec_at != "" {
+			}else if rec_at, ok := firstMeta["received_at"].(string); ok && rec_at != "" {
 				if t, err := time.Parse(time.RFC3339Nano, rec_at); err == nil {
 					*positionTime = t.UnixNano() / int64(time.Millisecond)
 				}
 			}
 		}
-	}
-	
+	}	
 }
 
 func processDecodedPayload(
-	decoded map[string]interface{},
+	decoded map[string]any,
 	geo **models.GeoLocation,
-	signals *map[string]interface{},
-	blue_wifi *[]map[string]interface{},
-	battery, temperature, light, humidity, event_status *interface{},
-	locationSet, batterySet, temperatureSet, lightSet, bluetoothSet, mokoDevice *bool,
+	signals *map[string]any,
+	blue_wifi *[]map[string]any,
+	locationSet, batterySet, temperatureSet, lightSet, bluetoothSet *bool,
 ) {
-	// *signals = make(map[string]interface{})
-
 	// Basic key-value parsing
 	for k, val := range decoded {
 		switch k {
@@ -298,12 +280,12 @@ func processDecodedPayload(
 				*batterySet = true
 			}
 
-		case "messages", "position_data", "light_intensity", "ambient_temperature", "humidity", "relative_humidity":
+		case "messages", "position_data", "light_intensity", "ambient_temperature", "humidity", "relative_humidity", "illumination":
 			// handled below, skip here
 			continue
 		
 		case "temperature":
-			if tempMap, ok := val.(map[string]interface{}); ok {
+			if tempMap, ok := val.(map[string]any); ok {
 				(*signals)["temperature"] = tempMap
 				continue
 			}
@@ -318,20 +300,20 @@ func processDecodedPayload(
 	}
 
 	// Parse messages
-	if msgs, ok := decoded["messages"].([]interface{}); ok && len(msgs) > 0 {
-		if group, ok := msgs[0].([]interface{}); ok {
+	if msgs, ok := decoded["messages"].([]any); ok && len(msgs) > 0 {
+		if group, ok := msgs[0].([]any); ok {
 			for _, m := range group {
-				entry := m.(map[string]interface{})
+				entry := m.(map[string]any)
 				switch entry["measurementId"] {
 				case "5002":
-					if values, ok := entry["measurementValue"].([]interface{}); ok {
+					if values, ok := entry["measurementValue"].([]any); ok {
 						for _, b := range values {
-							beacon := b.(map[string]interface{})
+							beacon := b.(map[string]any)
 							macRaw := fmt.Sprintf("%v", beacon["mac"])
 							rssiRaw := fmt.Sprintf("%v", beacon["rssi"])
 							formattedMac := formatMac(macRaw)
 							cleanedRSSI := cleanRSSI(rssiRaw)
-							*blue_wifi = append(*blue_wifi, map[string]interface{}{
+							*blue_wifi = append(*blue_wifi, map[string]any{
 								"macAddress":     formattedMac,
 								"signalStrength": cleanedRSSI,
 							})
@@ -339,14 +321,14 @@ func processDecodedPayload(
 						*bluetoothSet = true
 					}
 				case "5001":
-					if values, ok := entry["measurementValue"].([]interface{}); ok {
+					if values, ok := entry["measurementValue"].([]any); ok {
 						for _, b := range values {
-							beacon := b.(map[string]interface{})
+							beacon := b.(map[string]any)
 							macRaw := fmt.Sprintf("%v", beacon["mac"])
 							rssiRaw := fmt.Sprintf("%v", beacon["rssi"])
 							formattedMac := formatMac(macRaw)
 							cleanedRSSI := cleanRSSI(rssiRaw)
-							*blue_wifi = append(*blue_wifi, map[string]interface{}{
+							*blue_wifi = append(*blue_wifi, map[string]any{
 								"macAddress":     formattedMac,
 								"signalStrength": cleanedRSSI,
 							})
@@ -375,13 +357,15 @@ func processDecodedPayload(
 					(*signals)["eventStatus"] = entry["measurementValue"]
 				}
 			}
+		}else if _, ok := msgs[0].(map[string]any); ok {
+			(*signals)["messages"] = msgs
 		}
 	}
 
 	// Position data parsing
-	if values, ok := decoded["position_data"].([]interface{}); ok {
+	if values, ok := decoded["position_data"].([]any); ok {
 		for _, b := range values {
-			entry := b.(map[string]interface{})
+			entry := b.(map[string]any)
 
 			if latStr, ok := entry["latitude"].(string); ok {
 				if lngStr, ok2 := entry["longitude"].(string); ok2 {
@@ -397,14 +381,12 @@ func processDecodedPayload(
 					*locationSet = true
 					continue
 				}
-			}
-
-			if macRaw, ok := entry["mac_address"].(string); ok {
+			}else if macRaw, ok := entry["mac_address"].(string); ok {
 				rssiRaw := fmt.Sprintf("%v", entry["rssi"])
 				formattedMac := formatMac(macRaw)
 				cleanedRSSI := cleanRSSI(rssiRaw)
 
-				*blue_wifi = append(*blue_wifi, map[string]interface{}{
+				*blue_wifi = append(*blue_wifi, map[string]any{
 					"macAddress":     formattedMac,
 					"signalStrength": cleanedRSSI,
 				})
@@ -417,7 +399,7 @@ func processDecodedPayload(
 	if !*temperatureSet {
 		if val, ok := decoded["temperature"]; ok {
 			switch v := val.(type) {
-			case map[string]interface{}:
+			case map[string]any:
 				if celsius, ok := v["celsius"].(float64); ok {
 					(*signals)["temperatureLevel"] = celsius
 					*temperatureSet = true
@@ -438,11 +420,10 @@ func processDecodedPayload(
 			default:
 				(*signals)["temperatureLevel"] = v
 				*temperatureSet = true
-			}
-		}
-
-		if val, ok := decoded["ambient_temperature"]; ok {
+			} 
+		}else if val, ok := decoded["ambient_temperature"]; ok{
 			(*signals)["temperatureLevel"] = val
+			*temperatureSet = true
 		}
 	}
 
@@ -451,14 +432,16 @@ func processDecodedPayload(
 		if val, ok := decoded["light_intensity"]; ok {
 			(*signals)["light"] = val
 			*lightSet = true
+		} else if val, ok := decoded["illumination"]; ok {
+			(*signals)["light"] = val
+			*lightSet = true
 		}
 	}
 
 	// Humidity
 	if val, ok := decoded["humidity"]; ok {
 		(*signals)["humidity"] = val
-	}
-	if val, ok := decoded["relative_humidity"]; ok {
+	}else if val, ok := decoded["relative_humidity"]; ok{
 		(*signals)["humidity"] = val
 	}
 }
@@ -466,17 +449,17 @@ func processDecodedPayload(
 
 	
 
-func processNormalizedPayload(uplink map[string]interface{}, bluetoothBeacons *[]map[string]interface{}, signals *map[string]interface{}, battery, humidity, temperature *interface{}, positionTime *int64, locationSet *bool, batterySet *bool, temperatureSet *bool, lightSet *bool) {
+func processNormalizedPayload(uplink map[string]any, signals *map[string]any, batterySet *bool, temperatureSet *bool) {
 	// Case 1: normalized_payload is a slice
-	if normalizedArray, ok := uplink["normalized_payload"].([]interface{}); ok && len(normalizedArray) > 0 {
-		if firstEntry, ok := normalizedArray[0].(map[string]interface{}); ok {
+	if normalizedArray, ok := uplink["normalized_payload"].([]any); ok && len(normalizedArray) > 0 {
+		if firstEntry, ok := normalizedArray[0].(map[string]any); ok {
 			if !*batterySet{
 				if val, ok := firstEntry["battery"]; ok {
 				(*signals)["batteryLevel"] = val
 			}
 			}
 			
-			if airData, ok := firstEntry["air"].(map[string]interface{}); ok {
+			if airData, ok := firstEntry["air"].(map[string]any); ok {
 				if !*temperatureSet{
 					if val, ok := airData["temperature"]; ok {
 					(*signals)["temperatureLevel"] = val
@@ -489,17 +472,14 @@ func processNormalizedPayload(uplink map[string]interface{}, bluetoothBeacons *[
 			}
 		}
 		return  // Once handled, exit function
-	}
-
-	// Case 2: normalized_payload is a map
-	if normalizedMap, ok := uplink["normalized_payload"].(map[string]interface{}); ok {
+	}else if normalizedMap, ok := uplink["normalized_payload"].(map[string]any); ok {
 		if !*batterySet{
 			if val, ok := normalizedMap["battery"]; ok {
 				(*signals)["batteryLevel"] = val
 			}
 		}
 		
-		if airData, ok := normalizedMap["air"].(map[string]interface{}); ok {
+		if airData, ok := normalizedMap["air"].(map[string]any); ok {
 			if !*temperatureSet{
 				if val, ok := airData["temperature"]; ok {
 					(*signals)["temperatureLevel"] = val

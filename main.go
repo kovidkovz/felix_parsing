@@ -24,15 +24,126 @@ import (
 func main() {
 	// Yahan tera JSON payload (shortened example)
 	jsonPayload := `
-{"data":{"data":{"notifications":[{"locationHierarchy":{"level":"ROOT","name":"FMS Office","id":"daca73b9-3dce-4a18-97eb-8a7f9d6b17be","child":{"level":"ORG","name":"FMS Office Network","id":"03d6ac81-c867-4295-a869-06d02f8559ca","child":{"level":"NETWORK","name":"FMS Office","id":"67e9439f-4102-46ad-917d-4fd095dbd230","child":{"level":"FLOOR","name":"FMS Office","id":"bfdf0ea8-f040-421f-84f6-0cea1d00e3f8"}}}},"floorUuid":"bfdf0ea8-f040-421f-84f6-0cea1d00e3f8","notificationType":"locationupdate","source":"UNKNOWN","deviceId":"c4:39:60:6f:e3:ed","geoCoordinate":{"unit":"DEGREES","latitude":30.226234204449092,"longitude":-97.7594865997888},"ssid":"","manufacturer":"","floorId":"","band":"","generatedBy":"dnl-data-processor","staticDevice":"false","timestamp":1753773195819,"eventId":1753773195931,"locComputeType":"RSSI","lastLocated":"2025-07-29 07:13:15.819+0000","ipAddress":[""],"userName":"","lastSeen":"2025-07-29 07:13:15.819+0000","apMacAddress":"e4:55:a8:92:1f:ff","subscriptionName":"Traxmatev3","locationMapHierarchy":"FMS Office Network-\u003eFMS Office-\u003eFMS Office","associated":false,"tenantId":"29010","locationCoordinate":{"unit":"FEET","x":156.27429,"y":32.013428,"z":0},"confidenceFactor":0,"subscriptionId":"89ecae31-5d2e-43a2-86fd-36103845e1df","entity":"BLE_TAGS"}]},"hardwareId":"","time":1753776724198,"messageId":"bc3797be-eac3-44f0-904a-b6808ed8ad6a","serviceToken":"0941d3a4-8b43-490d-b90f-161b0a04c1ac","protocol":"default-iot"},"location":{"unit":"DEGREES","lat":30.226234204449092,"lng":-97.7594865997888},"hardwareId":"c4:39:60:6f:e3:ed","time":1753776724198,"messageId":"bc3797be-eac3-44f0-904a-b6808ed8ad6a","signals":{"device_name":"c4:39:60:6f:e3:ed"},"protocol":"default-iot","serviceToken":"0941d3a4-8b43-490d-b90f-161b0a04c1ac","Indoor":{"building":"East Alpine Road 230","buildingId":11878987,"floorIndex":0,"floorLabel":"0","buildingModelId":159643361,"locationHierarchy":{"child":{"child":{"child":{"id":"bfdf0ea8-f040-421f-84f6-0cea1d00e3f8","level":"FLOOR","name":"FMS Office"},"id":"67e9439f-4102-46ad-917d-4fd095dbd230","level":"NETWORK","name":"FMS Office"},"id":"03d6ac81-c867-4295-a869-06d02f8559ca","level":"ORG","name":"FMS Office Network"},"id":"daca73b9-3dce-4a18-97eb-8a7f9d6b17be","level":"ROOT","name":"FMS Office"}},"positionTime":1753773195819}`
+{
+      "data": {
+        "correlation_ids": [
+          "gs:uplink:01K1FW9ZRC1S4720YKZACDEBJ0"
+        ],
+        "end_device_ids": {
+          "application_ids": {
+            "application_id": "fms-demo-smart-office"
+          },
+          "dev_addr": "27FD4835",
+          "dev_eui": "2CF7F1213050002C",
+          "device_id": "sensecap-th-01-01",
+          "join_eui": "8000000000000009"
+        },
+        "received_at": "2025-07-31T09:16:42.847503112Z",
+        "uplink_message": {
+          "confirmed": true,
+          "consumed_airtime": "0.077056s",
+          "decoded_payload": {
+            "err": 0,
+            "messages": [
+              {
+                "battery": 100,
+                "type": "upload_battery"
+              },
+              {
+                "interval": 1800,
+                "type": "upload_interval"
+              },
+              {
+                "measurementId": 4097,
+                "measurementValue": 25.2,
+                "type": "report_telemetry"
+              },
+              {
+                "measurementId": 4098,
+                "measurementValue": 66.6,
+                "type": "report_telemetry"
+              }
+            ],
+            "payload": "00070064001E00010110706200000102102804010014BB",
+            "valid": true
+          },
+          "f_cnt": 12251,
+          "f_port": 2,
+          "frm_payload": "AAcAZAAeAAEBEHBiAAABAhAoBAEAFLs=",
+          "last_battery_percentage": {
+            "f_cnt": 12225,
+            "received_at": "2025-07-30T20:13:30.785113840Z",
+            "value": 39.130436
+          },
+          "locations": {
+            "user": {
+              "altitude": 191,
+              "latitude": 30.3390715684485,
+              "longitude": -97.7663040161133,
+              "source": "SOURCE_REGISTRY"
+            }
+          },
+          "network_ids": {
+            "cluster_address": "nam1.cloud.thethings.industries",
+            "cluster_id": "nam1",
+            "net_id": "000013",
+            "ns_id": "EC656E0000102C53",
+            "tenant_address": "fmsiotcloud.nam1.cloud.thethings.industries",
+            "tenant_id": "fmsiotcloud"
+          },
+          "received_at": "2025-07-31T09:16:42.636982652Z",
+          "rx_metadata": [
+            {
+              "channel_index": 3,
+              "channel_rssi": -65,
+              "gateway_ids": {
+                "eui": "A840411EBD004150",
+                "gateway_id": "treehouse-ttn"
+              },
+              "received_at": "2025-07-31T09:16:42.603350498Z",
+              "rssi": -65,
+              "snr": 9,
+              "time": "2025-07-31T09:16:42.595838Z",
+              "timestamp": 3720559371,
+              "uplink_token": "ChsKGQoNdHJlZWhvdXNlLXR0bhIIqEBBHr0AQVAQi/aM7g0aDAj66KzEBhCYr6avAiD4xfqUpL45"
+            }
+          ],
+          "session_key_id": "AZHQDenGwat+GpjajlWCCA==",
+          "settings": {
+            "data_rate": {
+              "lora": {
+                "bandwidth": 125000,
+                "coding_rate": "4/5",
+                "spreading_factor": 7
+              }
+            },
+            "frequency": "904500000",
+            "time": "2025-07-31T09:16:42.595838Z",
+            "timestamp": 3720559371
+          },
+          "version_ids": {
+            "band_id": "US_902_928",
+            "brand_id": "sensecap",
+            "firmware_version": "3.4",
+            "hardware_version": "2.0",
+            "model_id": "sensecap-air-th"
+          }
+        }
+      },
+      "hardwareId": "",
+      "messageId": "026fd429-55d6-497d-90ac-f470d195e74e",
+      "protocol": "default-iot",
+      "serviceToken": "0941d3a4-8b43-490d-b90f-161b0a04c1ac",
+      "time": 1753953402935
+    }`
 
 // // Call function directly with []byte
-// result := protocols.Parse_felix_data([]byte(jsonPayload))
-// fmt.Println(string(result))
-
-
-result := protocols.Nats_message_handlers([]byte(jsonPayload))
+result := protocols.Parse_felix_data([]byte(jsonPayload))
 fmt.Println(string(result))
+
+
+// result := protocols.Nats_message_handlers([]byte(jsonPayload))
+// fmt.Println(string(result))
 
 // result, err := FallbackLookup([]byte(jsonPayload))
 // if err != nil {
