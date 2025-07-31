@@ -7,15 +7,6 @@ import (
 	"maps"
 )
 
-type Indoor struct {
-	Building          string         `json:"building,omitempty"`
-	BuildingId        int32          `json:"buildingId,omitempty"`
-	FloorIndex        int            `json:"floorIndex"`
-	FloorLabel        string         `json:"floorLabel,omitempty"`
-	BuildingModelId   int32          `json:"buildingModelId,omitempty"`
-	LocationHierarchy map[string]any `json:"locationHierarchy,omitempty"`
-}
-
 type finalResponse struct {
 	Parsed_data any `json:"rawRequest,omitempty"`
 	CpsRequest  any `json:"cpsRequest,omitempty"`
