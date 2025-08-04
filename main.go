@@ -25,122 +25,117 @@ func main() {
 	// Yahan tera JSON payload (shortened example)
 	jsonPayload := `
 {
-      "data": {
-        "correlation_ids": [
-          "gs:uplink:01K1FW9ZRC1S4720YKZACDEBJ0"
-        ],
-        "end_device_ids": {
-          "application_ids": {
-            "application_id": "fms-demo-smart-office"
-          },
-          "dev_addr": "27FD4835",
-          "dev_eui": "2CF7F1213050002C",
-          "device_id": "sensecap-th-01-01",
-          "join_eui": "8000000000000009"
-        },
-        "received_at": "2025-07-31T09:16:42.847503112Z",
-        "uplink_message": {
-          "confirmed": true,
-          "consumed_airtime": "0.077056s",
-          "decoded_payload": {
-            "err": 0,
-            "messages": [
-              {
-                "battery": 100,
-                "type": "upload_battery"
-              },
-              {
-                "interval": 1800,
-                "type": "upload_interval"
-              },
-              {
-                "measurementId": 4097,
-                "measurementValue": 25.2,
-                "type": "report_telemetry"
-              },
-              {
-                "measurementId": 4098,
-                "measurementValue": 66.6,
-                "type": "report_telemetry"
-              }
-            ],
-            "payload": "00070064001E00010110706200000102102804010014BB",
-            "valid": true
-          },
-          "f_cnt": 12251,
-          "f_port": 2,
-          "frm_payload": "AAcAZAAeAAEBEHBiAAABAhAoBAEAFLs=",
-          "last_battery_percentage": {
-            "f_cnt": 12225,
-            "received_at": "2025-07-30T20:13:30.785113840Z",
-            "value": 39.130436
-          },
-          "locations": {
-            "user": {
-              "altitude": 191,
-              "latitude": 30.3390715684485,
-              "longitude": -97.7663040161133,
-              "source": "SOURCE_REGISTRY"
-            }
-          },
-          "network_ids": {
-            "cluster_address": "nam1.cloud.thethings.industries",
-            "cluster_id": "nam1",
-            "net_id": "000013",
-            "ns_id": "EC656E0000102C53",
-            "tenant_address": "fmsiotcloud.nam1.cloud.thethings.industries",
-            "tenant_id": "fmsiotcloud"
-          },
-          "received_at": "2025-07-31T09:16:42.636982652Z",
-          "rx_metadata": [
-            {
-              "channel_index": 3,
-              "channel_rssi": -65,
-              "gateway_ids": {
-                "eui": "A840411EBD004150",
-                "gateway_id": "treehouse-ttn"
-              },
-              "received_at": "2025-07-31T09:16:42.603350498Z",
-              "rssi": -65,
-              "snr": 9,
-              "time": "2025-07-31T09:16:42.595838Z",
-              "timestamp": 3720559371,
-              "uplink_token": "ChsKGQoNdHJlZWhvdXNlLXR0bhIIqEBBHr0AQVAQi/aM7g0aDAj66KzEBhCYr6avAiD4xfqUpL45"
-            }
-          ],
-          "session_key_id": "AZHQDenGwat+GpjajlWCCA==",
-          "settings": {
-            "data_rate": {
-              "lora": {
-                "bandwidth": 125000,
-                "coding_rate": "4/5",
-                "spreading_factor": 7
-              }
-            },
-            "frequency": "904500000",
-            "time": "2025-07-31T09:16:42.595838Z",
-            "timestamp": 3720559371
-          },
-          "version_ids": {
-            "band_id": "US_902_928",
-            "brand_id": "sensecap",
-            "firmware_version": "3.4",
-            "hardware_version": "2.0",
-            "model_id": "sensecap-air-th"
+  "data": {
+    "DevEUI_uplink": {
+      "Time": "2025-04-15T06:08:10.510+00:00",
+      "DevEUI": "20635F03C1000493",
+      "FPort": 18,
+      "FCntUp": 8106,
+      "LostUplinksAS": 0,
+      "ADRbit": 1,
+      "MType": 2,
+      "FCntDn": 153,
+      "payload_hex": "0520597d5040020600030305",
+      "mic_hex": "f95d8fc5",
+      "Lrcid": "000000CB",
+      "LrrRSSI": -65,
+      "LrrSNR": 9,
+      "LrrESP": -65.514969,
+      "SpFact": 8,
+      "SubBand": "G0",
+      "Channel": "LC5",
+      "Lrrid": "10000506",
+      "Late": 0,
+      "Lrrs": {
+        "Lrr": [
+          {
+            "Lrrid": "10000506",
+            "Chain": 0,
+            "LrrRSSI": -65,
+            "LrrSNR": 9,
+            "LrrESP": -65.514969
           }
+        ]
+      },
+      "DevLrrCnt": 1,
+      "CustomerID": "100000184",
+      "CustomerData": {
+        "loc": null,
+        "alr": {
+          "pro": "ABEE/APY",
+          "ver": "1"
+        },
+        "tags": [],
+        "doms": [],
+        "name": "ACES-0493"
+      },
+      "BaseStationData": {
+        "doms": [],
+        "name": "ACES-GW1"
+      },
+      "ModelCfg": "1:TPX_470fcf3b-a998-4735-a915-a99dc2d3a08c",
+      "DriverCfg": {
+        "mod": {
+          "pId": "abeeway",
+          "mId": "compact-tracker",
+          "ver": "1"
+        },
+        "app": {
+          "pId": "abeeway",
+          "mId": "asset-tracker",
+          "ver": "2"
+        },
+        "id": "abeeway:asset-tracker:3"
+      },
+      "InstantPER": 0,
+      "MeanPER": 0.019608,
+      "DevAddr": "00DAAC2D",
+      "TxPower": 18,
+      "NbTrans": 1,
+      "Frequency": 903.3,
+      "DynamicClass": "A",
+      "payload": {
+        "messageType": "HEARTBEAT",
+        "trackingMode": "MOTION_TRACKING",
+        "batteryLevel": 89,
+        "batteryStatus": "OPERATING",
+        "ackToken": 5,
+        "firmwareVersion": "2.6.0",
+        "bleFirmwareVersion": "3.3.5",
+        "resetCause": 64,
+        "periodicPosition": "false",
+        "temperatureMeasure": 19.2,
+        "sosFlag": 0,
+        "appState": 0,
+        "dynamicMotionState": "STATIC",
+        "onDemand": "false",
+        "payload": "0520597d5040020600030305",
+        "deviceConfiguration": {
+          "mode": "MOTION_TRACKING"
         }
       },
-      "hardwareId": "",
-      "messageId": "026fd429-55d6-497d-90ac-f470d195e74e",
-      "protocol": "default-iot",
-      "serviceToken": "0941d3a4-8b43-490d-b90f-161b0a04c1ac",
-      "time": 1753953402935
-    }`
+      "points": {
+        "batteryLevel": {
+          "unitId": "%",
+          "record": 89
+        },
+        "temperature": {
+          "unitId": "Cel",
+          "record": 19.2
+        }
+      },
+      "downlinkUrl": "https://thingparkenterprise.us.actility.com/iot-flow/downlinkMessages/39eb958d-9184-4200-8ae4-27eefa53f8d6"
+    }
+  }
+}`
 
 // // Call function directly with []byte
-result := protocols.Parse_felix_data([]byte(jsonPayload))
-fmt.Println(string(result))
+// result := protocols.Parse_felix_data([]byte(jsonPayload))
+// fmt.Println(string(result))
 
+
+result := protocols.ProcessAlaeMessage([]byte(jsonPayload))
+fmt.Println(string(result))
 
 // result := protocols.Nats_message_handlers([]byte(jsonPayload))
 // fmt.Println(string(result))

@@ -6,7 +6,7 @@ type IncomingData struct {
 	Data         json.RawMessage `json:"data,omitempty"`
 	GeoLocation  *GeoLocation    `json:"location,omitempty"`
 	HardwareID   string          `json:"hardwareId,omitempty"`
-	Time         interface{}     `json:"time,omitempty"`
+	Time         interface{}     `json:"serverTime,omitempty"`
 	MessageID    string          `json:"messageId,omitempty"`
 	RadioData    *RadioData      `json:"radioData,omitempty"`
 	Signals      interface{}     `json:"signals,omitempty"`
@@ -14,7 +14,6 @@ type IncomingData struct {
 	ServiceToken string          `json:"serviceToken,omitempty"`
 	Indoor       *Indoor         `json:"Indoor,omitempty"`
 	PositionTime interface{}     `json:"positionTime,omitempty"`
-	MokoSignals  interface{}     `json:"mokoSignals,omitempty"`
 }
 
 type RadioData struct {
@@ -60,13 +59,13 @@ type FinalData struct {
 }
 
 type Signals struct {
-	Battery        interface{} `json:"Battery"`
-	Temperature    interface{} `json:"Air Temperature"`
+	Battery        interface{} `json:"batteryLevel"`
+	Temperature    interface{} `json:"temperatureLevel"`
 	ReceivedTime   interface{} `json:"received_time"`
 	Location       interface{} `json:"location"`
-	Light          interface{} `json:"Light"`
-	EventStatus    interface{} `json:"Event Status"`
-	Humidity       interface{} `json:"Humidity"`
-	DecodedPayload interface{} `json:"DecodedPayload"`
+	Light          interface{} `json:"light"`
+	EventStatus    interface{} `json:"eventStatus"`
+	Humidity       interface{} `json:"humidity"`
+	DecodedPayload interface{} `json:"decodedPayload"`
 	AssistanceType interface{} `json:"assistance_type"`
 }

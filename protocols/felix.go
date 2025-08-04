@@ -358,7 +358,41 @@ func processDecodedPayload(
 				}
 			}
 		}else if _, ok := msgs[0].(map[string]any); ok {
-			(*signals)["messages"] = msgs
+			// First group all entries by type
+			grouped := map[string][]map[string]any{}
+			for _, m := range msgs {
+				entry := m.(map[string]any)
+				typ, _ := entry["type"].(string)
+				grouped[typ] = append(grouped[typ], entry)
+			}
+
+			// Now, build signals
+			for typ, entries := range grouped {
+				if typ == "upload_battery" {
+					if battery, ok := entries[0]["battery"]; ok {
+						(*signals)["batteryLevel"] = battery
+					}
+					continue
+				}
+				if len(entries) == 1 {
+					entry := entries[0]
+					if val, ok := entry["measurementValue"]; ok {
+						(*signals)[typ] = val
+					} else if val, ok := entry["interval"]; ok {
+						(*signals)[typ] = val
+					}
+				} else {
+					// Repeat:
+					for _, entry := range entries {
+						if measID, mok := entry["measurementId"]; mok {
+							key := fmt.Sprintf("%s_%v", typ, measID)
+							if val, ok := entry["measurementValue"]; ok {
+								(*signals)[key] = val
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -471,7 +505,6 @@ func processNormalizedPayload(uplink map[string]any, signals *map[string]any, ba
 				}
 			}
 		}
-		return  // Once handled, exit function
 	}else if normalizedMap, ok := uplink["normalized_payload"].(map[string]any); ok {
 		if !*batterySet{
 			if val, ok := normalizedMap["battery"]; ok {
