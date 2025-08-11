@@ -26,107 +26,28 @@ func main() {
 	jsonPayload := `
 {
   "data": {
-    "DevEUI_uplink": {
-      "Time": "2025-04-15T06:08:10.510+00:00",
-      "DevEUI": "20635F03C1000493",
-      "FPort": 18,
-      "FCntUp": 8106,
-      "LostUplinksAS": 0,
-      "ADRbit": 1,
-      "MType": 2,
-      "FCntDn": 153,
-      "payload_hex": "0520597d5040020600030305",
-      "mic_hex": "f95d8fc5",
-      "Lrcid": "000000CB",
-      "LrrRSSI": -65,
-      "LrrSNR": 9,
-      "LrrESP": -65.514969,
-      "SpFact": 8,
-      "SubBand": "G0",
-      "Channel": "LC5",
-      "Lrrid": "10000506",
-      "Late": 0,
-      "Lrrs": {
-        "Lrr": [
-          {
-            "Lrrid": "10000506",
-            "Chain": 0,
-            "LrrRSSI": -65,
-            "LrrSNR": 9,
-            "LrrESP": -65.514969
-          }
-        ]
-      },
-      "DevLrrCnt": 1,
-      "CustomerID": "100000184",
-      "CustomerData": {
-        "loc": null,
-        "alr": {
-          "pro": "ABEE/APY",
-          "ver": "1"
-        },
-        "tags": [],
-        "doms": [],
-        "name": "ACES-0493"
-      },
-      "BaseStationData": {
-        "doms": [],
-        "name": "ACES-GW1"
-      },
-      "ModelCfg": "1:TPX_470fcf3b-a998-4735-a915-a99dc2d3a08c",
-      "DriverCfg": {
-        "mod": {
-          "pId": "abeeway",
-          "mId": "compact-tracker",
-          "ver": "1"
-        },
-        "app": {
-          "pId": "abeeway",
-          "mId": "asset-tracker",
-          "ver": "2"
-        },
-        "id": "abeeway:asset-tracker:3"
-      },
-      "InstantPER": 0,
-      "MeanPER": 0.019608,
-      "DevAddr": "00DAAC2D",
-      "TxPower": 18,
-      "NbTrans": 1,
-      "Frequency": 903.3,
-      "DynamicClass": "A",
-      "payload": {
-        "messageType": "HEARTBEAT",
-        "trackingMode": "MOTION_TRACKING",
-        "batteryLevel": 89,
-        "batteryStatus": "OPERATING",
-        "ackToken": 5,
-        "firmwareVersion": "2.6.0",
-        "bleFirmwareVersion": "3.3.5",
-        "resetCause": 64,
-        "periodicPosition": "false",
-        "temperatureMeasure": 19.2,
-        "sosFlag": 0,
-        "appState": 0,
-        "dynamicMotionState": "STATIC",
-        "onDemand": "false",
-        "payload": "0520597d5040020600030305",
-        "deviceConfiguration": {
-          "mode": "MOTION_TRACKING"
-        }
-      },
-      "points": {
-        "batteryLevel": {
-          "unitId": "%",
-          "record": 89
-        },
-        "temperature": {
-          "unitId": "Cel",
-          "record": 19.2
-        }
-      },
-      "downlinkUrl": "https://thingparkenterprise.us.actility.com/iot-flow/downlinkMessages/39eb958d-9184-4200-8ae4-27eefa53f8d6"
-    }
-  }
+    "id": "20635F03C1000352",
+    "timestamp": "2025-08-10T14:41:52.364+00:00",
+    "indoor": 1,
+    "signals": {
+      "dynamicMotionState": "MOVING",
+      "messageType": "EVENT",
+      "trackingMode": "MOTION_TRACKING",
+      "battery": 86,
+      "lastknownlat": 32.6291683,
+      "lastknownlng": -83.593185,
+      "lastpositionTime": "2025-08-10T14:35:56.468Z",
+      "name": "Generated - 20635F03C1000352"
+    },
+    "wifiAccessPoints": [
+      {}
+    ]
+  },
+  "hardwareId": "20635f03c1000352",
+  "time": 1754836913005,
+  "messageId": "78bdc491-825d-47e3-89a5-124421e81306",
+  "serviceToken": "aca80396-eda9-42ad-a4f0-005c88dc75de",
+  "device_profile_name": "abeeway-compact-tracker"
 }`
 
 // // Call function directly with []byte
