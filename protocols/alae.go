@@ -67,6 +67,8 @@ func ProcessAlaeMessage(msg []byte) []byte {
 					if f, ok := v.(float64); ok {
 						lng = &f
 					}
+				case "temperatureMeasure":
+					signals["temperatureLevel"] = v
 				default:
 					signals[k] = v
 				}

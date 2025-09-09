@@ -27,23 +27,23 @@ func main() {
 {
   "data": {
     "DevEUI_uplink": {
-      "Time": "2025-09-09T08:00:44.928+00:00",
-      "DevEUI": "20635F0241001349",
-      "FPort": 18,
-      "FCntUp": 9635,
+      "Time": "2025-09-09T06:38:20.519+00:00",
+      "DevEUI": "20635F00C80002A6",
+      "FPort": 17,
+      "FCntUp": 3924,
       "LostUplinksAS": 0,
       "ADRbit": 1,
       "MType": 2,
-      "FCntDn": 99,
-      "payload_hex": "052039848040020600030305",
-      "mic_hex": "582fe3a8",
+      "FCntDn": 71,
+      "payload_hex": "032a9088a00a136d2dce26ab02",
+      "mic_hex": "17b3594a",
       "Lrcid": "000000CB",
-      "LrrRSSI": -32,
+      "LrrRSSI": -39,
       "LrrSNR": 9.25,
-      "LrrESP": -32.48772,
+      "LrrESP": -39.48772,
       "SpFact": 7,
       "SubBand": "G0",
-      "Channel": "LC0",
+      "Channel": "LC2",
       "Lrrid": "10000511",
       "Late": 0,
       "LrrLAT": 32.592274,
@@ -53,9 +53,9 @@ func main() {
           {
             "Lrrid": "10000511",
             "Chain": 0,
-            "LrrRSSI": -32,
+            "LrrRSSI": -39,
             "LrrSNR": 9.25,
-            "LrrESP": -32.48772
+            "LrrESP": -39.48772
           }
         ]
       },
@@ -69,7 +69,7 @@ func main() {
         },
         "tags": [],
         "doms": [],
-        "name": "SB3-1349"
+        "name": "ACES-02A6-IT"
       },
       "BaseStationData": {
         "doms": [],
@@ -79,8 +79,8 @@ func main() {
       "DriverCfg": {
         "mod": {
           "pId": "abeeway",
-          "mId": "smart-badge",
-          "ver": "1"
+          "mId": "indus-tracker",
+          "ver": "2"
         },
         "app": {
           "pId": "abeeway",
@@ -90,41 +90,57 @@ func main() {
         "id": "abeeway:asset-tracker:3"
       },
       "InstantPER": 0,
-      "MeanPER": 0,
-      "DevAddr": "057B1E9E",
+      "MeanPER": 0.019608,
+      "DevAddr": "0408C1A3",
       "TxPower": 10,
       "NbTrans": 1,
-      "Frequency": 902.3,
+      "Frequency": 902.7,
       "DynamicClass": "A",
       "PayloadEncryption": 0,
       "payload": {
-        "messageType": "HEARTBEAT",
+        "gpsLatitude": 32.5922048,
+        "gpsLongitude": -83.6326656,
+        "horizontalAccuracy": 7.84,
+        "messageType": "POSITION_MESSAGE",
+        "age": 80,
         "trackingMode": "MOTION_TRACKING",
-        "batteryLevel": 57,
-        "batteryStatus": "OPERATING",
-        "ackToken": 8,
-        "firmwareVersion": "2.6.0",
-        "bleFirmwareVersion": "3.3.5",
-        "resetCause": 64,
-        "periodicPosition": "false",
-        "temperatureMeasure": 22.8,
+        "batteryVoltage": 3.59,
+        "ackToken": 10,
+        "rawPositionType": "GPS",
+        "periodicPosition": "true",
+        "temperatureMeasure": 24.8,
         "sosFlag": 0,
-        "appState": 0,
+        "appState": 1,
         "dynamicMotionState": "STATIC",
         "onDemand": "false",
-        "payload": "052039848040020600030305",
+        "payload": "032a9088a00a136d2dce26ab02",
         "deviceConfiguration": {
           "mode": "MOTION_TRACKING"
         }
       },
       "points": {
-        "batteryLevel": {
-          "unitId": "%",
-          "record": 57
-        },
         "temperature": {
           "unitId": "Cel",
-          "record": 22.8
+          "record": 24.8
+        },
+        "batteryVoltage": {
+          "unitId": "V",
+          "record": 3.59
+        },
+        "location": {
+          "unitId": "GPS",
+          "record": [
+            -83.6326656,
+            32.5922048
+          ]
+        },
+        "accuracy": {
+          "unitId": "m",
+          "record": 7.84
+        },
+        "age": {
+          "unitId": "s",
+          "record": 80
         }
       },
       "downlinkUrl": "https://thingparkenterprise.us.actility.com/iot-flow/downlinkMessages/39eb958d-9184-4200-8ae4-27eefa53f8d6"
@@ -134,15 +150,20 @@ func main() {
     "164067": false,
     "164067-inside": false
   },
-  "deviceId": 270510,
+  "deviceId": 272092,
   "signals": {
-    "Received Time": "2025-09-09T08:00:49.340Z",
-    "Mode": "Heart beat",
-    "Battery Level": 57,
-    "Temperature": 22.8
+    "Received Time": "2025-09-09T06:38:21.142Z",
+    "Mode": "Position",
+    "Temperature": 24.8,
+    "Location": {
+      "lat": 32.5922048,
+      "lng": -83.6326656
+    },
+    "Position Time": "2025-09-09T06:37:01.122Z"
   }
 }
 `
+
 
 
 // // Call function directly with []byte
