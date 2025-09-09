@@ -30,6 +30,8 @@ func ProcessAlaeMessage(msg []byte) []byte {
 	var radioData models.RadioData
 	var positionTime int64
 	var protocol string
+	var lat *float64 = nil
+	var lng *float64 = nil
 
 	// Case A: DevEUI_uplink (semtech/raw lora type)
 	if uplink, found := data["DevEUI_uplink"].(map[string]any); found {
@@ -37,12 +39,6 @@ func ProcessAlaeMessage(msg []byte) []byte {
 		if devEUI, ok := uplink["DevEUI"].(string); ok {
 			hardwareID = devEUI
 			signals["deviceName"] = devEUI
-		}
-		// Device Name
-		if customerData, ok := uplink["CustomerData"].(map[string]any); ok {
-			if name, ok := customerData["name"].(string); ok {
-				signals["deviceName"] = name
-			}
 		}
 
 		// Battery (Kabhi aata hai toh payload se nikalna pad sakta hai, yahan skip kar rahe)
@@ -56,17 +52,31 @@ func ProcessAlaeMessage(msg []byte) []byte {
 		if v, ok := uplink["MeanPER"].(float64); ok {
 			signals["meanPER"] = v
 		}
+		
+		positionTime = extractTimeField(uplink["Time"])
+		
 
-		// Location
-		lat, _latOK := uplink["LrrLAT"].(float64)
-		lng, _lngOK := uplink["LrrLON"].(float64)
-		if _latOK && _lngOK {
-			geo = &models.GeoLocation{
-				Lat: lat,
-				Lng: lng,
-				// Source: "abeeway",  // Set if you want
+		if payload, ok := uplink["payload"].(map[string]any); ok {
+			for k, v := range payload {
+				switch k {
+				case "gpsLatitude":
+					if f, ok := v.(float64); ok {
+						lat = &f
+					}
+				case "gpsLongitude":
+					if f, ok := v.(float64); ok {
+						lng = &f
+					}
+				default:
+					signals[k] = v
+				}
 			}
-			positionTime = extractTimeField(uplink["Time"])
+			if lat != nil && lng != nil {
+				geo = &models.GeoLocation{
+					Lat: *lat,
+					Lng: *lng,
+				}
+			}
 		}
 
 		// Radio: Lrrs

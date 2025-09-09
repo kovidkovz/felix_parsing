@@ -26,29 +26,124 @@ func main() {
 	jsonPayload := `
 {
   "data": {
-    "id": "20635F03C1000352",
-    "timestamp": "2025-08-10T14:41:52.364+00:00",
-    "indoor": 1,
-    "signals": {
-      "dynamicMotionState": "MOVING",
-      "messageType": "EVENT",
-      "trackingMode": "MOTION_TRACKING",
-      "battery": 86,
-      "lastknownlat": 32.6291683,
-      "lastknownlng": -83.593185,
-      "lastpositionTime": "2025-08-10T14:35:56.468Z",
-      "name": "Generated - 20635F03C1000352"
-    },
-    "wifiAccessPoints": [
-      {}
-    ]
+    "DevEUI_uplink": {
+      "Time": "2025-09-09T08:00:44.928+00:00",
+      "DevEUI": "20635F0241001349",
+      "FPort": 18,
+      "FCntUp": 9635,
+      "LostUplinksAS": 0,
+      "ADRbit": 1,
+      "MType": 2,
+      "FCntDn": 99,
+      "payload_hex": "052039848040020600030305",
+      "mic_hex": "582fe3a8",
+      "Lrcid": "000000CB",
+      "LrrRSSI": -32,
+      "LrrSNR": 9.25,
+      "LrrESP": -32.48772,
+      "SpFact": 7,
+      "SubBand": "G0",
+      "Channel": "LC0",
+      "Lrrid": "10000511",
+      "Late": 0,
+      "LrrLAT": 32.592274,
+      "LrrLON": -83.632484,
+      "Lrrs": {
+        "Lrr": [
+          {
+            "Lrrid": "10000511",
+            "Chain": 0,
+            "LrrRSSI": -32,
+            "LrrSNR": 9.25,
+            "LrrESP": -32.48772
+          }
+        ]
+      },
+      "DevLrrCnt": 1,
+      "CustomerID": "100000184",
+      "CustomerData": {
+        "loc": null,
+        "alr": {
+          "pro": "ABEE/APY",
+          "ver": "1"
+        },
+        "tags": [],
+        "doms": [],
+        "name": "SB3-1349"
+      },
+      "BaseStationData": {
+        "doms": [],
+        "name": "ACES-GW3"
+      },
+      "ModelCfg": "1:TPX_470fcf3b-a998-4735-a915-a99dc2d3a08c",
+      "DriverCfg": {
+        "mod": {
+          "pId": "abeeway",
+          "mId": "smart-badge",
+          "ver": "1"
+        },
+        "app": {
+          "pId": "abeeway",
+          "mId": "asset-tracker",
+          "ver": "2"
+        },
+        "id": "abeeway:asset-tracker:3"
+      },
+      "InstantPER": 0,
+      "MeanPER": 0,
+      "DevAddr": "057B1E9E",
+      "TxPower": 10,
+      "NbTrans": 1,
+      "Frequency": 902.3,
+      "DynamicClass": "A",
+      "PayloadEncryption": 0,
+      "payload": {
+        "messageType": "HEARTBEAT",
+        "trackingMode": "MOTION_TRACKING",
+        "batteryLevel": 57,
+        "batteryStatus": "OPERATING",
+        "ackToken": 8,
+        "firmwareVersion": "2.6.0",
+        "bleFirmwareVersion": "3.3.5",
+        "resetCause": 64,
+        "periodicPosition": "false",
+        "temperatureMeasure": 22.8,
+        "sosFlag": 0,
+        "appState": 0,
+        "dynamicMotionState": "STATIC",
+        "onDemand": "false",
+        "payload": "052039848040020600030305",
+        "deviceConfiguration": {
+          "mode": "MOTION_TRACKING"
+        }
+      },
+      "points": {
+        "batteryLevel": {
+          "unitId": "%",
+          "record": 57
+        },
+        "temperature": {
+          "unitId": "Cel",
+          "record": 22.8
+        }
+      },
+      "downlinkUrl": "https://thingparkenterprise.us.actility.com/iot-flow/downlinkMessages/39eb958d-9184-4200-8ae4-27eefa53f8d6"
+    }
   },
-  "hardwareId": "20635f03c1000352",
-  "time": 1754836913005,
-  "messageId": "78bdc491-825d-47e3-89a5-124421e81306",
-  "serviceToken": "aca80396-eda9-42ad-a4f0-005c88dc75de",
-  "device_profile_name": "abeeway-compact-tracker"
-}`
+  "ruleStates": {
+    "164067": false,
+    "164067-inside": false
+  },
+  "deviceId": 270510,
+  "signals": {
+    "Received Time": "2025-09-09T08:00:49.340Z",
+    "Mode": "Heart beat",
+    "Battery Level": 57,
+    "Temperature": 22.8
+  }
+}
+`
+
 
 // // Call function directly with []byte
 // result := protocols.Parse_felix_data([]byte(jsonPayload))
