@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 	"ms-testing/models"
-	"reflect"
+	// "reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -14,32 +14,29 @@ import (
 
 // DecodedData matches the structure of the JS decoded object
 type DecodedData struct {
-	BatteryVoltage    float64
-	BatteryPercentage int
-	Temperature       float64
-	AckToken          int
-	SosMode           bool
-	TrackingState     bool
-	Moving            bool
-	PeriodicPos       bool
-	PosOnDemand       bool
-	OperatingMode     int
-
-	Latitude  *float64
-	Longitude *float64
-	Accuracy  *float64
-	Age       *int
-
-	Bssid []string // For wifi type
-	Rssi  []int    // For wifi or BLE
-
-	MacAdr      []string // For BLE
-	GpsTimeout  bool
-	Shutdown    bool
-	GeolocStart bool
-	Heartbeat   bool
-	ResetCause  *int
-	FirmwareVer []byte
+	BatteryVoltage    float64  `json:"batteryVoltage"`
+	BatteryLevel      int      `json:"batteryLevel"`
+	TemperatureLevel  float64  `json:"temperatureLevel"`
+	AckToken          int      `json:"ackToken"`
+	SosMode           bool     `json:"sosMode"`
+	TrackingState     bool     `json:"trackingState"`
+	Moving            bool     `json:"moving"`
+	PeriodicPos       bool     `json:"periodicPos"`
+	PosOnDemand       bool     `json:"posOnDemand"`
+	OperatingMode     int      `json:"operatingMode"`
+	Latitude          *float64 `json:"latitude,omitempty"`
+	Longitude         *float64 `json:"longitude,omitempty"`
+	Accuracy          *float64 `json:"accuracy,omitempty"`
+	Age               *int     `json:"age,omitempty"`
+	Bssid             []string `json:"bssid,omitempty"`
+	Rssi              []int    `json:"rssi,omitempty"`
+	MacAdr            []string `json:"macAdr,omitempty"`
+	GpsTimeout        bool     `json:"gpsTimeout,omitempty"`
+	Shutdown          bool     `json:"shutdown,omitempty"`
+	GeolocStart       bool     `json:"geolocStart,omitempty"`
+	Heartbeat         bool     `json:"heartbeat,omitempty"`
+	ResetCause        *int     `json:"resetCause,omitempty"`
+	FirmwareVer       []byte   `json:"firmwareVer,omitempty"`
 }
 
 func formatMAC(bytes []byte) string {
@@ -61,16 +58,16 @@ func join(a []string, sep string) string {
 	return out
 }
 
-func Decoder(bytes []byte, port int) DecodedData {
+func Decoder(bytes []byte, port int) []byte {
 	decoded := DecodedData{}
 
 	if len(bytes) < 5 {
-		return decoded
+		return nil
 	}
 
 	decoded.BatteryVoltage = float64(bytes[2])*0.0055 + 2.8
-	decoded.BatteryPercentage = int(float64(bytes[2]) / 255.0 * 100)
-	decoded.Temperature = float64(bytes[3])*0.5 - 44
+	decoded.BatteryLevel = int(float64(bytes[2]) / 255.0 * 100)
+	decoded.TemperatureLevel = float64(bytes[3])*0.5 - 44
 	decoded.AckToken = int(bytes[4] >> 4)
 
 	decoded.SosMode = (bytes[1] & 0x10) != 0
@@ -154,7 +151,12 @@ func Decoder(bytes []byte, port int) DecodedData {
 		}
 	}
 
-	return decoded
+	bytes, err := json.Marshal(decoded)
+	if err != nil {
+		fmt.Println("Error marshalling", err)
+	}
+
+	return bytes
 }
 
 // Signed int8 conversion
@@ -165,23 +167,10 @@ func signedByte(b byte) int {
 	return int(b)
 }
 
-func StructToMap(data DecodedData) map[string]interface{} {
-	out := make(map[string]interface{})
-	val := reflect.ValueOf(data)
-	typ := reflect.TypeOf(data)
-	for i := 0; i < val.NumField(); i++ {
-		key := typ.Field(i).Name
-		value := val.Field(i).Interface()
-		// If pointer, dereference
-		if v, ok := value.(*float64); ok && v != nil {
-			value = *v
-		}
-		if v, ok := value.(*int); ok && v != nil {
-			value = *v
-		}
-		out[key] = value
-	}
-	return out
+func BytesToMap(data []byte) (map[string]interface{}, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(data, &m)
+	return m, err
 }
 
 func ProcessAlaeMessage(msg []byte) []byte {
@@ -203,7 +192,6 @@ func ProcessAlaeMessage(msg []byte) []byte {
 	var signals = make(map[string]any)
 	var radioData models.RadioData
 	var positionTime int64
-	var protocol string
 	var lat *float64 = nil
 	var lng *float64 = nil
 
@@ -213,18 +201,6 @@ func ProcessAlaeMessage(msg []byte) []byte {
 		if devEUI, ok := uplink["DevEUI"].(string); ok {
 			hardwareID = devEUI
 			signals["deviceName"] = devEUI
-		}
-
-		// Battery (Kabhi aata hai toh payload se nikalna pad sakta hai, yahan skip kar rahe)
-		// Gateway radio params
-		if v, ok := uplink["LrrRSSI"].(float64); ok {
-			signals["gatewayRssi"] = v
-		}
-		if v, ok := uplink["LrrSNR"].(float64); ok {
-			signals["gatewaySnr"] = v
-		}
-		if v, ok := uplink["MeanPER"].(float64); ok {
-			signals["meanPER"] = v
 		}
 
 		payloadHex, ok := uplink["payload_hex"].(string)
@@ -240,18 +216,20 @@ func ProcessAlaeMessage(msg []byte) []byte {
 
 		decoded := Decoder(bytes, 17)
 
-		decoded_map := StructToMap(decoded)
+		decoded_map, err := BytesToMap(decoded)
+		if err != nil {
+			fmt.Println("Error:", err)
+		}
 
 		positionTime = extractTimeField(uplink["Time"])
 
-
 		for k, v := range decoded_map {
 			switch k {
-			case "gpsLatitude":
+			case "latitude":
 				if f, ok := v.(float64); ok {
 					lat = &f
 				}
-			case "gpsLongitude":
+			case "longitude":
 				if f, ok := v.(float64); ok {
 					lng = &f
 				}
@@ -267,30 +245,6 @@ func ProcessAlaeMessage(msg []byte) []byte {
 				Lng: *lng,
 			}
 		}
-
-		// Radio: Lrrs
-		if lrrs, ok := uplink["Lrrs"].(map[string]any); ok {
-			if lrrarr, ok := lrrs["Lrr"].([]any); ok && len(lrrarr) > 0 {
-				var wifiAps []map[string]any
-				for _, entry := range lrrarr {
-					lrr, _ := entry.(map[string]any)
-					if lrr == nil {
-						continue
-					}
-					ap := map[string]any{}
-					ap["stationId"] = lrr["Lrrid"]
-					if v, ok := lrr["LrrRSSI"]; ok {
-						ap["signalStrength"] = v
-					}
-					if v, ok := lrr["LrrSNR"]; ok {
-						ap["snr"] = v
-					}
-					wifiAps = append(wifiAps, ap)
-				}
-				radioData.WifiAccessPoints = wifiAps
-			}
-		}
-		protocol = "lorawan"
 	}
 
 	// Case B: location+signals (NAKED GPS/CLOUD API type)
@@ -328,7 +282,6 @@ func ProcessAlaeMessage(msg []byte) []byte {
 				radioData.WifiAccessPoints = arr
 			}
 		}
-		protocol = "cloud-gps"
 	}
 
 	// Case C: PURE signals, maybe "wifiAccessPoints" without location
@@ -355,28 +308,12 @@ func ProcessAlaeMessage(msg []byte) []byte {
 		}
 	}
 
-	// HardwareId fallback
-	if hardwareID == "" {
-		// Try request/id or data/id
-		if req, ok := data["request"].(map[string]any); ok {
-			if id, ok := req["id"].(string); ok {
-				hardwareID = id
-			}
-		} else if id, ok := data["id"].(string); ok {
-			hardwareID = id
-		} else if rawhid, ok := raw["hardwareId"].(string); ok && rawhid != "" {
-			hardwareID = rawhid
-		}
-	}
-	// Lowercase
-	hardwareID = strings.ToUpper(hardwareID)
-
 	// Final assemble
 	incoming := models.IncomingData{
 		HardwareID:   hardwareID,
 		Time:         raw["time"],
 		MessageID:    fmt.Sprintf("%v", raw["messageId"]),
-		Protocol:     protocol,
+		Protocol:     fmt.Sprintf("%v", raw["device_profile_name"]),
 		ServiceToken: fmt.Sprintf("%v", raw["serviceToken"]),
 		Data:         msg,
 		GeoLocation:  geo,

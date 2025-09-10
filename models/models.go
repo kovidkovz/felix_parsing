@@ -10,7 +10,7 @@ type IncomingData struct {
 	MessageID    string          `json:"messageId,omitempty"`
 	RadioData    *RadioData      `json:"radioData,omitempty"`
 	Signals      interface{}     `json:"signals,omitempty"`
-	Protocol     string          `json:"protocol,omitempty"`
+	Protocol     string          `json:"device_profile_name,omitempty"`
 	ServiceToken string          `json:"serviceToken,omitempty"`
 	Indoor       *Indoor         `json:"Indoor,omitempty"`
 	PositionTime interface{}     `json:"positionTime,omitempty"`
