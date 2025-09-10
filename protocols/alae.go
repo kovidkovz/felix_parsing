@@ -1,14 +1,188 @@
 package protocols
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
 	"ms-testing/models"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
 )
+
+// DecodedData matches the structure of the JS decoded object
+type DecodedData struct {
+	BatteryVoltage    float64
+	BatteryPercentage int
+	Temperature       float64
+	AckToken          int
+	SosMode           bool
+	TrackingState     bool
+	Moving            bool
+	PeriodicPos       bool
+	PosOnDemand       bool
+	OperatingMode     int
+
+	Latitude  *float64
+	Longitude *float64
+	Accuracy  *float64
+	Age       *int
+
+	Bssid []string // For wifi type
+	Rssi  []int    // For wifi or BLE
+
+	MacAdr      []string // For BLE
+	GpsTimeout  bool
+	Shutdown    bool
+	GeolocStart bool
+	Heartbeat   bool
+	ResetCause  *int
+	FirmwareVer []byte
+}
+
+func formatMAC(bytes []byte) string {
+	vals := make([]string, len(bytes))
+	for i, b := range bytes {
+		vals[i] = fmt.Sprintf("%02x", b)
+	}
+	return join(vals[:], ":") // No fmt.Sprintf needed here!
+}
+
+func join(a []string, sep string) string {
+	out := ""
+	for i := 0; i < len(a); i++ {
+		if i > 0 {
+			out += sep
+		}
+		out += a[i]
+	}
+	return out
+}
+
+func Decoder(bytes []byte, port int) DecodedData {
+	decoded := DecodedData{}
+
+	if len(bytes) < 5 {
+		return decoded
+	}
+
+	decoded.BatteryVoltage = float64(bytes[2])*0.0055 + 2.8
+	decoded.BatteryPercentage = int(float64(bytes[2]) / 255.0 * 100)
+	decoded.Temperature = float64(bytes[3])*0.5 - 44
+	decoded.AckToken = int(bytes[4] >> 4)
+
+	decoded.SosMode = (bytes[1] & 0x10) != 0
+	decoded.TrackingState = (bytes[1] & 0x08) != 0
+	decoded.Moving = (bytes[1] & 0x04) != 0
+	decoded.PeriodicPos = (bytes[1] & 0x02) != 0
+	decoded.PosOnDemand = (bytes[1] & 0x01) != 0
+	decoded.OperatingMode = int(bytes[1] >> 5)
+
+	switch {
+	// Position message & GPS type
+	case bytes[0] == 0x03 && (bytes[4]&0x0F) == 0x00 && len(bytes) >= 13:
+		latRawUint := (uint32(bytes[6]) << 16) | (uint32(bytes[7]) << 8) | uint32(bytes[8])
+		latRawUint = latRawUint << 8
+		latRaw := int32(latRawUint)
+		latitude := float64(latRaw) / 10000000.0
+		decoded.Latitude = &latitude
+
+		lngRawUint := (uint32(bytes[9]) << 16) | (uint32(bytes[10]) << 8) | uint32(bytes[11])
+		lngRawUint = lngRawUint << 8
+		lngRaw := int32(lngRawUint)
+		longitude := float64(lngRaw) / 10000000.0
+		decoded.Longitude = &longitude
+
+		accuracy := float64(bytes[12]) * 3.9
+		decoded.Accuracy = &accuracy
+		age := int(bytes[5]) * 8
+		decoded.Age = &age
+
+	// Position message & WiFi BSSID type
+	case bytes[0] == 0x03 && (bytes[4]&0x0F) == 0x09 && len(bytes) >= 34:
+		decoded.Bssid = []string{
+			formatMAC(bytes[6:12]),
+			formatMAC(bytes[13:19]),
+			formatMAC(bytes[20:26]),
+			formatMAC(bytes[27:33]),
+		}
+		decoded.Rssi = []int{
+			signedByte(bytes[12]),
+			signedByte(bytes[19]),
+			signedByte(bytes[26]),
+			signedByte(bytes[33]),
+		}
+
+		// Position message & BLE macaddr type
+	case bytes[0] == 0x03 && (bytes[4]&0x0F) == 0x07 && len(bytes) >= 34:
+		decoded.MacAdr = []string{
+			formatMAC(bytes[6:12]),
+			formatMAC(bytes[13:19]),
+			formatMAC(bytes[20:26]),
+			formatMAC(bytes[27:33]),
+		}
+		decoded.Rssi = []int{
+			signedByte(bytes[12]),
+			signedByte(bytes[19]),
+			signedByte(bytes[26]),
+			signedByte(bytes[33]),
+		}
+
+		// Position message & GPS timeout (failure)
+	case bytes[0] == 0x03 && (bytes[4]&0x0F) == 0x01:
+		decoded.GpsTimeout = true
+
+		// Shutdown message
+	case bytes[0] == 0x09:
+		decoded.Shutdown = true
+
+		// Geoloc start
+	case bytes[0] == 0x0A:
+		decoded.GeolocStart = true
+
+		// Heartbeat
+	case bytes[0] == 0x05:
+		decoded.Heartbeat = true
+		if len(bytes) >= 6 {
+			tmp := int(bytes[5])
+			decoded.ResetCause = &tmp
+		}
+		if len(bytes) >= 9 {
+			decoded.FirmwareVer = bytes[6:9]
+		}
+	}
+
+	return decoded
+}
+
+// Signed int8 conversion
+func signedByte(b byte) int {
+	if b > 127 {
+		return int(b) - 256
+	}
+	return int(b)
+}
+
+func StructToMap(data DecodedData) map[string]interface{} {
+	out := make(map[string]interface{})
+	val := reflect.ValueOf(data)
+	typ := reflect.TypeOf(data)
+	for i := 0; i < val.NumField(); i++ {
+		key := typ.Field(i).Name
+		value := val.Field(i).Interface()
+		// If pointer, dereference
+		if v, ok := value.(*float64); ok && v != nil {
+			value = *v
+		}
+		if v, ok := value.(*int); ok && v != nil {
+			value = *v
+		}
+		out[key] = value
+	}
+	return out
+}
 
 func ProcessAlaeMessage(msg []byte) []byte {
 	fmt.Println("abeeway data received by the parser")
@@ -52,32 +226,45 @@ func ProcessAlaeMessage(msg []byte) []byte {
 		if v, ok := uplink["MeanPER"].(float64); ok {
 			signals["meanPER"] = v
 		}
-		
-		positionTime = extractTimeField(uplink["Time"])
-		
 
-		if payload, ok := uplink["payload"].(map[string]any); ok {
-			for k, v := range payload {
-				switch k {
-				case "gpsLatitude":
-					if f, ok := v.(float64); ok {
-						lat = &f
-					}
-				case "gpsLongitude":
-					if f, ok := v.(float64); ok {
-						lng = &f
-					}
-				case "temperatureMeasure":
-					signals["temperatureLevel"] = v
-				default:
-					signals[k] = v
+		payloadHex, ok := uplink["payload_hex"].(string)
+		if !ok {
+			fmt.Println("payload_hex missing or not a string")
+		}
+
+		bytes, err := hex.DecodeString(payloadHex)
+		if err != nil {
+			fmt.Println("Error decoding hex:", err)
+			return nil
+		}
+
+		decoded := Decoder(bytes, 17)
+
+		decoded_map := StructToMap(decoded)
+
+		positionTime = extractTimeField(uplink["Time"])
+
+
+		for k, v := range decoded_map {
+			switch k {
+			case "gpsLatitude":
+				if f, ok := v.(float64); ok {
+					lat = &f
 				}
+			case "gpsLongitude":
+				if f, ok := v.(float64); ok {
+					lng = &f
+				}
+			case "temperatureMeasure":
+				signals["temperatureLevel"] = v
+			default:
+				signals[k] = v
 			}
-			if lat != nil && lng != nil {
-				geo = &models.GeoLocation{
-					Lat: *lat,
-					Lng: *lng,
-				}
+		}
+		if lat != nil && lng != nil {
+			geo = &models.GeoLocation{
+				Lat: *lat,
+				Lng: *lng,
 			}
 		}
 
