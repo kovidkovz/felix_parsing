@@ -527,13 +527,15 @@ func processNormalizedPayload(uplink map[string]any, signals *map[string]any, ba
 
 
 func formatMac(mac string) string {
-	mac = strings.ReplaceAll(mac, ":", "")
-	if len(mac) != 12 {
-		return mac
-	}
-	return fmt.Sprintf("%s:%s:%s:%s:%s:%s",
-		mac[0:2], mac[2:4], mac[4:6],
-		mac[6:8], mac[8:10], mac[10:12])
+    // Remove both ":" and "-" from input
+    mac = strings.ReplaceAll(mac, ":", "")
+    mac = strings.ReplaceAll(mac, "-", "")
+    if len(mac) != 12 {
+        return mac
+    }
+    return fmt.Sprintf("%s:%s:%s:%s:%s:%s",
+        mac[0:2], mac[2:4], mac[4:6],
+        mac[6:8], mac[8:10], mac[10:12])
 }
 
 func cleanRSSI(rssiRaw string) string {

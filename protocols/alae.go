@@ -1,14 +1,14 @@
 package protocols
 
 import (
-	"encoding/hex"
+	// "encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
 	"ms-testing/models"
 	// "reflect"
 	"strconv"
-	"strings"
+	// "strings"
 	"time"
 )
 
@@ -194,123 +194,65 @@ func ProcessAlaeMessage(msg []byte) []byte {
 	var positionTime int64
 	var lat *float64 = nil
 	var lng *float64 = nil
+	var blue_wifi []map[string]any
 
 	// Case A: DevEUI_uplink (semtech/raw lora type)
 	if uplink, found := data["DevEUI_uplink"].(map[string]any); found {
+		payload, ok := uplink["payload"].(map[string]any)
+		if !ok {
+			return nil
+		}
 		// Hardware
 		if devEUI, ok := uplink["DevEUI"].(string); ok {
 			hardwareID = devEUI
 			signals["deviceName"] = devEUI
 		}
 
-		payloadHex, ok := uplink["payload_hex"].(string)
-		if !ok {
-			fmt.Println("payload_hex missing or not a string")
-		}
-
-		// Single check: 1) 31 bytes (62 chars) OR 2) starts with "0e"
-		if len(payloadHex) == 62 || strings.HasPrefix(payloadHex, "0e") {
-			fmt.Println("payload_hex unsupported (31 bytes OR starts with 0e)")
-			return nil
-		}
-
-		bytes, err := hex.DecodeString(payloadHex)
-		if err != nil {
-			fmt.Println("Error decoding hex:", err)
-			return nil
-		}
-
-		decoded := Decoder(bytes, 17)
-
-		decoded_map, err := BytesToMap(decoded)
-		if err != nil {
-			fmt.Println("Error:", err)
-		}
-
 		positionTime = extractTimeField(uplink["Time"])
 
-		for k, v := range decoded_map {
+		// fetch location
+		if latitude, ok := uplink["LrrLAT"].(float64); ok {
+			lat = &latitude
+		}
+
+		if longitude, ok := uplink["LrrLAT"].(float64); ok {
+			lng = &longitude
+		}
+
+		for k, v := range payload {
 			switch k {
-			case "latitude":
-				if f, ok := v.(float64); ok {
-					lat = &f
-				}
-			case "longitude":
-				if f, ok := v.(float64); ok {
-					lng = &f
-				}
 			case "temperatureMeasure":
 				signals["temperatureLevel"] = v
+			case "bleBeaconIds":
+				// Safely check if v is a slice
+				if beacons, ok := v.([]any); ok {
+					for _, b := range beacons {
+						// Each b should be a map[string]any
+						if beacon, ok := b.(map[string]any); ok {
+							macRaw := fmt.Sprintf("%v", beacon["beaconId"])
+							rssiRaw := fmt.Sprintf("%v", beacon["rssi"])
+							formattedMac := formatMac(macRaw)
+							cleanedRSSI := cleanRSSI(rssiRaw)
+							blue_wifi = append(blue_wifi, map[string]any{
+								"macAddress":     formattedMac,
+								"signalStrength": cleanedRSSI,
+							})
+						}
+					}
+					radioData = models.RadioData{
+						BluetoothBeacons: blue_wifi,
+					}
+				}
 			default:
 				signals[k] = v
 			}
 		}
+
 		if lat != nil && lng != nil {
 			geo = &models.GeoLocation{
 				Lat: *lat,
 				Lng: *lng,
 			}
-		}
-	}
-
-	// Case B: location+signals (NAKED GPS/CLOUD API type)
-	if loc, found := data["location"].(map[string]any); found {
-		geo = &models.GeoLocation{
-			Lat: getFloat(loc["lat"]),
-			Lng: getFloat(loc["lng"]),
-		}
-		if pt, ok := data["positionTime"].(float64); ok {
-			positionTime = int64(pt)
-		}
-		// signals:
-		if sigs, ok := data["signals"].(map[string]any); ok {
-			for k, v := range sigs {
-				// Copy all in signals, format keys for battery etc.
-				if k == "battery" {
-					signals["batteryLevel"] = v
-				} else if strings.Contains(strings.ToLower(k), "temperature") {
-					signals["temperatureLevel"] = v
-				} else {
-					signals[k] = v
-				}
-			}
-		}
-		// Radio data
-		if wifis, ok := data["wifiAccessPoints"].([]any); ok && len(wifis) > 0 {
-			// Proper wifi AP format
-			var arr []map[string]any
-			for _, ap := range wifis {
-				if apmap, ok := ap.(map[string]any); ok {
-					arr = append(arr, apmap)
-				}
-			}
-			if len(arr) > 0 {
-				radioData.WifiAccessPoints = arr
-			}
-		}
-	}
-
-	// Case C: PURE signals, maybe "wifiAccessPoints" without location
-	if sigs, ok := data["signals"].(map[string]any); ok && geo == nil {
-		for k, v := range sigs {
-			if k == "battery" {
-				signals["batteryLevel"] = v
-			} else if strings.Contains(strings.ToLower(k), "temperature") {
-				signals["temperatureLevel"] = v
-			} else {
-				signals[k] = v
-			}
-		}
-	}
-	if ap, ok := data["wifiAccessPoints"].([]any); ok && radioData.WifiAccessPoints == nil {
-		var arr []map[string]any
-		for _, x := range ap {
-			if m, ok := x.(map[string]any); ok {
-				arr = append(arr, m)
-			}
-		}
-		if len(arr) > 0 {
-			radioData.WifiAccessPoints = arr
 		}
 	}
 
@@ -326,7 +268,7 @@ func ProcessAlaeMessage(msg []byte) []byte {
 		Signals:      signals,
 		PositionTime: positionTime,
 	}
-	if len(radioData.WifiAccessPoints) > 0 {
+	if len(radioData.BluetoothBeacons) > 0 {
 		incoming.RadioData = &radioData
 	}
 
