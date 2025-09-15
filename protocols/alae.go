@@ -208,6 +208,12 @@ func ProcessAlaeMessage(msg []byte) []byte {
 			fmt.Println("payload_hex missing or not a string")
 		}
 
+		// Single check: 1) 31 bytes (62 chars) OR 2) starts with "0e"
+		if len(payloadHex) == 62 || strings.HasPrefix(payloadHex, "0e") {
+			fmt.Println("payload_hex unsupported (31 bytes OR starts with 0e)")
+			return nil
+		}
+
 		bytes, err := hex.DecodeString(payloadHex)
 		if err != nil {
 			fmt.Println("Error decoding hex:", err)
