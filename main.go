@@ -24,137 +24,149 @@ import (
 func main() {
 	// Yahan tera JSON payload (shortened example)
 	jsonPayload := `
-{
-  "data": {
-    "DevEUI_uplink": {
-      "Time": "2025-09-15T10:40:21.653+00:00",
-      "DevEUI": "20635F0241001349",
-      "FPort": 18,
-      "FCntUp": 11692,
-      "LostUplinksAS": 0,
-      "ADRbit": 1,
-      "MType": 2,
-      "FCntDn": 115,
-      "payload_hex": "032a4e7f8a20000000000315cd000000000333bb000000000321b0",
-      "mic_hex": "9aa8ac44",
-      "Lrcid": "000000CB",
-      "LrrRSSI": -39,
-      "LrrSNR": 10.5,
-      "LrrESP": -39.370777,
-      "SpFact": 7,
-      "SubBand": "G0",
-      "Channel": "LC2",
-      "Lrrid": "10000511",
-      "Late": 0,
-      "LrrLAT": 32.592323,
-      "LrrLON": -83.632523,
-      "Lrrs": {
-        "Lrr": [
-          {
-            "Lrrid": "10000511",
-            "Chain": 0,
-            "LrrRSSI": -39,
-            "LrrSNR": 10.5,
-            "LrrESP": -39.370777
-          }
-        ]
-      },
-      "DevLrrCnt": 1,
-      "CustomerID": "100000184",
-      "CustomerData": {
-        "loc": null,
-        "alr": {
-          "pro": "ABEE/APY",
-          "ver": "1"
+{"data" :{
+  "DevEUI_uplink": {
+    "Time": "2025-09-16T06:33:52.460+00:00",
+    "DevEUI": "20635F03C1000181",
+    "FPort": 18,
+    "FCntUp": 44255,
+    "LostUplinksAS": 0,
+    "ADRbit": 1,
+    "MType": 2,
+    "FCntDn": 872,
+    "payload_hex": "0e2a4c80a000cd0313727a7ece2bb6d2003a1b00000003",
+    "mic_hex": "d9b6091c",
+    "Lrcid": "000000CB",
+    "LrrRSSI": -91.0,
+    "LrrSNR": 9.25,
+    "LrrESP": -91.487717,
+    "SpFact": 7,
+    "SubBand": "G0",
+    "Channel": "LC6",
+    "Lrrid": "10000506",
+    "Late": 0,
+    "LrrLAT": 32.630306,
+    "LrrLON": -83.600533,
+    "Lrrs": {
+      "Lrr": [
+        {
+          "Lrrid": "10000506",
+          "Chain": 0,
+          "LrrRSSI": -91.0,
+          "LrrSNR": 9.25,
+          "LrrESP": -91.487717
         },
-        "tags": [],
-        "doms": [],
-        "name": "SB3-1349"
-      },
-      "BaseStationData": {
-        "doms": [],
-        "name": "ACES-GW3"
-      },
-      "ModelCfg": "1:TPX_a28d76dc-feb8-42fd-ae34-29db10e45030",
-      "DriverCfg": {
-        "mod": {
-          "pId": "abeeway",
-          "mId": "smart-badge",
-          "ver": "1"
-        },
-        "app": {
-          "pId": "abeeway",
-          "mId": "asset-tracker",
-          "ver": "2"
-        },
-        "id": "abeeway:asset-tracker:3"
-      },
-      "InstantPER": 0,
-      "MeanPER": 0,
-      "DevAddr": "057B1E9E",
-      "TxPower": 10,
-      "NbTrans": 1,
-      "Frequency": 902.7,
-      "DynamicClass": "A",
-      "PayloadEncryption": 0,
-      "payload": {
-        "messageType": "POSITION_MESSAGE",
-        "age": 256,
-        "trackingMode": "MOTION_TRACKING",
-        "batteryLevel": 78,
-        "batteryStatus": "OPERATING",
-        "ackToken": 8,
-        "rawPositionType": "BLE_BEACON_SCAN_SHORT_ID",
-        "periodicPosition": true,
-        "temperatureMeasure": 20.2,
-        "sosFlag": 0,
-        "appState": 1,
-        "dynamicMotionState": "STATIC",
-        "onDemand": false,
-        "payload": "032a4e7f8a20000000000315cd000000000333bb000000000321b0",
-        "deviceConfiguration": {
-          "mode": "MOTION_TRACKING"
-        },
-        "bleBeaconIds": [
-          {
-            "beaconId": "00-00-00-00-03-15",
-            "rssi": -51
-          },
-          {
-            "beaconId": "00-00-00-00-03-33",
-            "rssi": -69
-          },
-          {
-            "beaconId": "00-00-00-00-03-21",
-            "rssi": -80
-          }
-        ]
-      },
-      "points": {
-        "batteryLevel": {
-          "unitId": "%",
-          "record": 78
-        },
-        "temperature": {
-          "unitId": "Cel",
-          "record": 20.2
-        },
-        "age": {
-          "unitId": "s",
-          "record": 256
+        {
+          "Lrrid": "10000513",
+          "Chain": 0,
+          "LrrRSSI": -116.0,
+          "LrrSNR": 0.5,
+          "LrrESP": -118.767494
         }
+      ]
+    },
+    "DevLrrCnt": 2,
+    "CustomerID": "100000184",
+    "CustomerData": {
+      "loc": null,
+      "alr": {
+        "pro": "ABEE/APY",
+        "ver": "1"
       },
-      "downlinkUrl": "https://thingparkenterprise.us.actility.com/iot-flow/downlinkMessages/de97cdd4-e21d-4722-852d-674f72e6f4af"
+      "tags": [],
+      "doms": [],
+      "name": "ACES-0181"
+    },
+    "BaseStationData": {
+      "doms": [],
+      "name": "ACES-GW1"
+    },
+    "ModelCfg": "1:TPX_a28d76dc-feb8-42fd-ae34-29db10e45030",
+    "DriverCfg": {
+      "mod": {
+        "pId": "abeeway",
+        "mId": "compact-tracker",
+        "ver": "1"
+      },
+      "app": {
+        "pId": "abeeway",
+        "mId": "asset-tracker",
+        "ver": "2"
+      },
+      "id": "abeeway:asset-tracker:3"
+    },
+    "InstantPER": 0.0,
+    "MeanPER": 0.02,
+    "DevAddr": "0089C665",
+    "TxPower": 10.0,
+    "NbTrans": 1,
+    "Frequency": 903.5,
+    "DynamicClass": "A",
+    "PayloadEncryption": 0,
+    "payload": {
+      "gpsLatitude": 32.6269566,
+      "gpsLongitude": -83.599595,
+      "gpsAltitude": 58,
+      "gpsCourseOverGround": 0,
+      "gpsSpeedOverGround": 3,
+      "gpsFixStatus": "FIX_3D",
+      "gpsPayloadType": 1,
+      "horizontalAccuracy": 27,
+      "messageType": "EXTENDED_POSITION_MESSAGE",
+      "age": 205,
+      "trackingMode": "MOTION_TRACKING",
+      "batteryLevel": 76,
+      "batteryStatus": "OPERATING",
+      "ackToken": 10,
+      "rawPositionType": "GPS",
+      "periodicPosition": true,
+      "temperatureMeasure": 20.8,
+      "sosFlag": 0,
+      "appState": 1,
+      "dynamicMotionState": "STATIC",
+      "onDemand": false,
+      "payload": "0e2a4c80a000cd0313727a7ece2bb6d2003a1b00000003",
+      "deviceConfiguration": {
+        "mode": "MOTION_TRACKING"
+      }
+    },
+    "points": {
+      "batteryLevel": {
+        "unitId": "%",
+        "record": 76
+      },
+      "temperature": {
+        "unitId": "Cel",
+        "record": 20.8
+      },
+      "location": {
+        "unitId": "GPS",
+        "record": [
+          -83.599595,
+          32.6269566
+        ]
+      },
+      "altitude": {
+        "unitId": "m",
+        "record": 58
+      },
+      "accuracy": {
+        "unitId": "m",
+        "record": 27
+      },
+      "age": {
+        "unitId": "s",
+        "record": 205
+      },
+      "speed": {
+        "unitId": "m/s",
+        "record": 0.03
+      }
+    },
+    "downlinkUrl": "https://thingparkenterprise.us.actility.com/iot-flow/downlinkMessages/de97cdd4-e21d-4722-852d-674f72e6f4af"
     }
-  },
-  "hardwareId": "",
-  "time": 1757932822360,
-  "messageId": "ffc07c74-7a3d-4547-a127-c723b134f338",
-  "serviceToken": "aca80396-eda9-42ad-a4f0-005c88dc75de",
-  "device_profile_name": "abeeway-compact-tracker"
+  }
 }
-
-
 `
 
 // // Call function directly with []byte

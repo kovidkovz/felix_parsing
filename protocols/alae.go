@@ -194,6 +194,7 @@ func ProcessAlaeMessage(msg []byte) []byte {
 	var positionTime int64
 	var lat *float64 = nil
 	var lng *float64 = nil
+	var alt *float64 = nil
 	var blue_wifi []map[string]any
 
 	// Case A: DevEUI_uplink (semtech/raw lora type)
@@ -210,19 +211,25 @@ func ProcessAlaeMessage(msg []byte) []byte {
 
 		positionTime = extractTimeField(uplink["Time"])
 
-		// fetch location
-		if latitude, ok := uplink["LrrLAT"].(float64); ok {
-			lat = &latitude
-		}
-
-		if longitude, ok := uplink["LrrLAT"].(float64); ok {
-			lng = &longitude
-		}
-
 		for k, v := range payload {
 			switch k {
 			case "temperatureMeasure":
 				signals["temperatureLevel"] = v
+
+			case "gpsLatitude":
+				if f, ok := v.(float64); ok {
+					lat = &f
+				}
+			case "gpsLongitude":
+				if f, ok := v.(float64); ok {
+					lng = &f
+				}
+			
+			case "gpsAltitude":
+				if f, ok := v.(float64); ok {
+					alt = &f
+				}
+			
 			case "bleBeaconIds":
 				// Safely check if v is a slice
 				if beacons, ok := v.([]any); ok {
@@ -252,6 +259,7 @@ func ProcessAlaeMessage(msg []byte) []byte {
 			geo = &models.GeoLocation{
 				Lat: *lat,
 				Lng: *lng,
+				Alt: *alt,
 			}
 		}
 	}
